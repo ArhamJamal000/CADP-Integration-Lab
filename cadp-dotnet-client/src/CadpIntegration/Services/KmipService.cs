@@ -41,7 +41,7 @@ public class KmipService : IKmipService
 
         try
         {
-            var response = await _httpClient.PostAsJsonAsync($"http://{_settings.KmipHost}:{_settings.KmipPort}/kmip/create",
+            var response = await _httpClient.PostAsJsonAsync($"http://kmip-client:5000/kmip/create",
                 new { name, algorithm, key_size = keySize }, ct);
             if (response.IsSuccessStatusCode)
             {
@@ -64,7 +64,7 @@ public class KmipService : IKmipService
 
         try
         {
-            var response = await _httpClient.PostAsJsonAsync($"http://{_settings.KmipHost}:{_settings.KmipPort}/kmip/locate",
+            var response = await _httpClient.PostAsJsonAsync($"http://kmip-client:5000/kmip/locate",
                 new { name, algorithm, state }, ct);
             if (response.IsSuccessStatusCode)
             {
@@ -87,7 +87,7 @@ public class KmipService : IKmipService
 
         try
         {
-            var response = await _httpClient.PostAsJsonAsync($"http://{_settings.KmipHost}:{_settings.KmipPort}/kmip/get",
+            var response = await _httpClient.PostAsJsonAsync($"http://kmip-client:5000/kmip/get",
                 new { uuid }, ct);
             if (response.IsSuccessStatusCode)
             {
@@ -110,7 +110,7 @@ public class KmipService : IKmipService
 
         try
         {
-            var response = await _httpClient.PostAsJsonAsync($"http://{_settings.KmipHost}:{_settings.KmipPort}/kmip/activate",
+            var response = await _httpClient.PostAsJsonAsync($"http://kmip-client:5000/kmip/activate",
                 new { uuid }, ct);
             if (response.IsSuccessStatusCode)
             {
@@ -134,7 +134,7 @@ public class KmipService : IKmipService
         try
         {
             // NO destroy/delete — only revoke
-            var response = await _httpClient.PostAsJsonAsync($"http://{_settings.KmipHost}:{_settings.KmipPort}/kmip/revoke",
+            var response = await _httpClient.PostAsJsonAsync($"http://kmip-client:5000/kmip/revoke",
                 new { uuid }, ct);
             if (response.IsSuccessStatusCode)
             {

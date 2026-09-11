@@ -30,7 +30,23 @@ Log.Logger = new LoggerConfiguration()
 builder.Host.UseSerilog();
 
 // 2. Map Configuration & Register Services
-builder.Services.Configure<CadpSettings>(builder.Configuration);
+builder.Services.Configure<CadpSettings>(options =>
+{
+    options.CadpHost = Environment.GetEnvironmentVariable("CADP_HOST") ?? "";
+    options.CadpPort = int.TryParse(Environment.GetEnvironmentVariable("CADP_PORT"), out var cadpPort)
+        ? cadpPort
+        : 0;
+
+    options.KmipHost = Environment.GetEnvironmentVariable("KMIP_HOST") ?? "";
+    options.KmipPort = int.TryParse(Environment.GetEnvironmentVariable("KMIP_PORT"), out var kmipPort)
+        ? kmipPort
+        : 5696;
+
+    options.NaeHost = Environment.GetEnvironmentVariable("NAE_HOST") ?? "";
+    options.NaePort = int.TryParse(Environment.GetEnvironmentVariable("NAE_PORT"), out var naePort)
+        ? naePort
+        : 9000;
+});
 builder.Services.AddRazorPages();
 builder.Services.AddSingleton<IEncryptionService, CadpEncryptionService>();
 builder.Services.AddHttpClient<IKmipService, KmipService>();
@@ -73,16 +89,16 @@ app.MapRazorPages();
 // ═══════════════════════════════════════════════════════════
 // Health Endpoint
 // ═══════════════════════════════════════════════════════════
-app.MapGet("/health", (IConfiguration config) =>
+app.MapGet("/health", (Microsoft.Extensions.Options.IOptions<CadpSettings> options) =>
 {
-    var settings = new CadpSettings();
-    config.Bind(settings);
+    var settings = options.Value;
+
     return Results.Json(new
     {
         application = "UP",
-        kmip = string.IsNullOrEmpty(settings.KmipHost) ? "NOT CONFIGURED" : "DOWN",
-        naeXml = string.IsNullOrEmpty(settings.NaeHost) ? "NOT CONFIGURED" : "DOWN",
-        cadp = string.IsNullOrEmpty(settings.CadpHost) ? "NOT CONFIGURED" : "DOWN"
+        kmip = string.IsNullOrEmpty(settings.KmipHost) ? "NOT CONFIGURED" : "CONFIGURED",
+        naeXml = string.IsNullOrEmpty(settings.NaeHost) ? "NOT CONFIGURED" : "CONFIGURED",
+        cadp = string.IsNullOrEmpty(settings.CadpHost) ? "NOT CONFIGURED" : "CONFIGURED"
     });
 });
 

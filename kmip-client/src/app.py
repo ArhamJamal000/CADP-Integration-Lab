@@ -11,21 +11,24 @@ KMIP_USERNAME = os.environ.get("KMIP_USERNAME", "")
 KMIP_PASSWORD = os.environ.get("KMIP_PASSWORD", "")
 
 def get_kmip_client():
-    """
-    Returns a PyKMIP ProxyKmipClient connected to the server.
-    Returns None if not configured.
-    """
     if not KMIP_HOST:
         return None
+
     try:
-        from kmip.services.kmip_client import ProxyKmipClient
+        from kmip.pie.client import ProxyKmipClient
+
         client = ProxyKmipClient(
             hostname=KMIP_HOST,
             port=KMIP_PORT,
-            username=KMIP_USERNAME,
-            password=KMIP_PASSWORD
+            cert="/certs/client.crt",
+            key="/certs/client.key",
+            ca="/certs/Certificate (1).pem",
+            username=KMIP_USERNAME or None,
+            password=KMIP_PASSWORD or None
         )
+
         return client
+
     except Exception as e:
         app.logger.error(f"Failed to create KMIP client: {e}")
         return None
