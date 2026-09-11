@@ -1,0 +1,96 @@
+@page
+@{ ViewData["Title"] = "KMIP Key Management"; }
+
+<div class="card">
+    <h2>KMIP Key Management</h2>
+    <h3>Create Key</h3>
+    <div style="display: flex; gap: 16px; margin-bottom: 16px;">
+        <input type="text" id="keyName" placeholder="Key Name" style="flex:1; padding:8px;" />
+        <select id="keyAlgo" style="padding:8px;"><option value="AES">AES</option><option value="3DES">3DES</option></select>
+        <select id="keySize" style="padding:8px;"><option value="256">256-bit</option><option value="192">192-bit</option><option value="128">128-bit</option></select>
+        <button class="btn" onclick="createKey()">Create</button>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Locate Keys</h3>
+    <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+        <input type="text" id="searchName" placeholder="Name (optional)" style="flex:1; padding:8px;" />
+        <button class="btn" onclick="locateKeys()">Search</button>
+    </div>
+    <table style="width:100%; border-collapse:collapse;" id="keysTable">
+        <thead><tr style="background:#2c3e50; color:white;">
+            <th style="padding:8px; text-align:left;">UUID</th>
+            <th style="padding:8px; text-align:left;">Name</th>
+            <th style="padding:8px; text-align:left;">State</th>
+            <th style="padding:8px; text-align:left;">Algorithm</th>
+            <th style="padding:8px; text-align:left;">Actions</th>
+        </tr></thead>
+        <tbody id="keysBody"></tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h3>Operation Result</h3>
+    <div id="kmipStatus" style="padding:8px; display:none;"></div>
+    <pre id="kmipResult" style="background:#ecf0f1; padding:16px; min-height:40px; white-space:pre-wrap;"></pre>
+</div>
+
+<script>
+function showResult(data, isSuccess) {
+    const s = document.getElementById('kmipStatus');
+    const r = document.getElementById('kmipResult');
+    s.style.display = 'block';
+    s.style.background = isSuccess ? '#27ae60' : '#e74c3c';
+    s.style.color = 'white';
+    s.textContent = isSuccess ? 'Success' : 'Failure';
+    r.textContent = JSON.stringify(data, null, 2);
+}
+
+async function createKey() {
+    try {
+        const res = await fetch('/api/kmip/create', { method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ name: document.getElementById('keyName').value, algorithm: document.getElementById('keyAlgo').value, keySize: parseInt(document.getElementById('keySize').value) }) });
+        const data = await res.json();
+        showResult(data, data.success);
+        if (data.success) locateKeys();
+    } catch(e) { showResult({error: e.message}, false); }
+}
+
+async function locateKeys() {
+    try {
+        const res = await fetch('/api/kmip/locate', { method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ name: document.getElementById('searchName').value || null }) });
+        const data = await res.json();
+        const tbody = document.getElementById('keysBody');
+        tbody.innerHTML = '';
+        if (data.success && data.keys) {
+            data.keys.forEach(k => {
+                tbody.innerHTML += `<tr style="border-bottom:1px solid #ddd;">
+                    <td style="padding:8px; font-family:monospace; font-size:0.85em;">${k.uuid}</td>
+                    <td style="padding:8px;">${k.name}</td>
+                    <td style="padding:8px;">${k.state}</td>
+                    <td style="padding:8px;">${k.algorithm}</td>
+                    <td style="padding:8px;">
+                        <button class="btn" style="font-size:0.8em; padding:4px 8px;" onclick="keyAction('get','${k.uuid}')">Get</button>
+                        <button class="btn" style="font-size:0.8em; padding:4px 8px;" onclick="keyAction('activate','${k.uuid}')">Activate</button>
+                        <button class="btn" style="font-size:0.8em; padding:4px 8px; background:#e74c3c;" onclick="keyAction('revoke','${k.uuid}')">Revoke (no delete)</button>
+                    </td>
+                </tr>`;
+            });
+        } else {
+            showResult(data, false);
+        }
+    } catch(e) { showResult({error: e.message}, false); }
+}
+
+async function keyAction(action, uuid) {
+    try {
+        const res = await fetch(`/api/kmip/${action}`, { method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ uuid }) });
+        const data = await res.json();
+        showResult(data, data.success);
+        if (data.success) locateKeys();
+    } catch(e) { showResult({error: e.message}, false); }
+}
+</script>

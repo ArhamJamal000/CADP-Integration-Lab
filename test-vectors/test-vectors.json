@@ -1,0 +1,36 @@
+[
+  {
+    "id": "TV-001",
+    "description": "AES string encryption",
+    "plaintext": "Hello CADP",
+    "keyId": "test-key-1",
+    "algorithm": "AES",
+    "iv": "(generated at runtime)",
+    "expectedResult": "ciphertext produced, decryption recovers original"
+  },
+  {
+    "id": "TV-002",
+    "description": "AES string encryption with unicode",
+    "plaintext": "Hello CADP 🔐",
+    "keyId": "test-key-1",
+    "algorithm": "AES",
+    "iv": "(generated at runtime)",
+    "expectedResult": "ciphertext produced, decryption recovers original unicode string"
+  },
+  {
+    "id": "TV-003",
+    "description": "AES file streaming encryption (0 bytes)",
+    "plaintext_size_bytes": 0,
+    "keyId": "test-key-2",
+    "algorithm": "AES-CBC",
+    "expectedResult": "properly initialized zero-byte padding ciphertext, identical SHA-256 upon decryption"
+  },
+  {
+    "id": "TV-004",
+    "description": "AES file streaming encryption (64 KB chunk)",
+    "plaintext_size_bytes": 65536,
+    "keyId": "test-key-2",
+    "algorithm": "AES-GCM",
+    "expectedResult": "multi-block processing successful, tag validates, identical SHA-256 upon decryption"
+  }
+]

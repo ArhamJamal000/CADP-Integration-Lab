@@ -1,0 +1,70 @@
+@page
+@{ ViewData["Title"] = "String Encryption"; }
+
+<div class="card">
+    <h2>String Encryption</h2>
+    <div style="display: grid; gap: 16px;">
+        <div>
+            <label><strong>Plaintext / Ciphertext:</strong></label><br/>
+            <textarea id="inputText" rows="4" style="width:100%; padding:8px; box-sizing:border-box;" placeholder="Enter text here..."></textarea>
+        </div>
+        <div style="display: flex; gap: 16px;">
+            <div style="flex:1;">
+                <label><strong>Key Identifier:</strong></label><br/>
+                <input type="text" id="keyId" placeholder="e.g. test-key-1" style="width:100%; padding:8px; box-sizing:border-box;" />
+            </div>
+            <div style="flex:1;">
+                <label><strong>Algorithm:</strong></label><br/>
+                <select id="algorithm" style="width:100%; padding:8px; box-sizing:border-box;">
+                    <option value="AES">AES</option>
+                    <option value="AES-CBC">AES-CBC</option>
+                    <option value="AES-GCM">AES-GCM</option>
+                </select>
+            </div>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <button class="btn" onclick="doStringOp('encrypt')">Encrypt</button>
+            <button class="btn" onclick="doStringOp('decrypt')">Decrypt</button>
+            <button class="btn" style="background:#95a5a6;" onclick="clearFields()">Clear</button>
+        </div>
+        <div id="statusIndicator" style="padding:8px; display:none;"></div>
+        <div>
+            <label><strong>Result:</strong></label>
+            <pre id="resultArea" style="background:#ecf0f1; padding:16px; min-height:60px; white-space:pre-wrap; word-break:break-all;"></pre>
+        </div>
+    </div>
+</div>
+
+<script>
+async function doStringOp(action) {
+    const statusEl = document.getElementById('statusIndicator');
+    const resultEl = document.getElementById('resultArea');
+    statusEl.style.display = 'block';
+    statusEl.style.background = '#f39c12'; statusEl.style.color = 'white';
+    statusEl.textContent = 'In Progress...';
+
+    const body = action === 'encrypt'
+        ? { plaintext: document.getElementById('inputText').value, keyId: document.getElementById('keyId').value, algorithm: document.getElementById('algorithm').value }
+        : { ciphertext: document.getElementById('inputText').value, keyId: document.getElementById('keyId').value, algorithm: document.getElementById('algorithm').value };
+
+    try {
+        const res = await fetch(`/api/encryption/string/${action}`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+        const data = await res.json();
+        if (data.success) {
+            statusEl.style.background = '#27ae60'; statusEl.textContent = 'Success';
+        } else {
+            statusEl.style.background = '#e74c3c'; statusEl.textContent = 'Failure';
+        }
+        resultEl.textContent = JSON.stringify(data, null, 2);
+    } catch(e) {
+        statusEl.style.background = '#e74c3c'; statusEl.textContent = 'Failure';
+        resultEl.textContent = 'Error: ' + e.message;
+    }
+}
+function clearFields() {
+    document.getElementById('inputText').value = '';
+    document.getElementById('keyId').value = '';
+    document.getElementById('resultArea').textContent = '';
+    document.getElementById('statusIndicator').style.display = 'none';
+}
+</script>

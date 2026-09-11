@@ -1,0 +1,24 @@
+@page
+@{ ViewData["Title"] = "Configuration"; }
+
+<div class="card">
+    <h2>Environment Configuration</h2>
+    <p>Sanitized view of Active Lab Environments. Credentials are masked for security.</p>
+    
+    <div id="configContent" style="padding:16px; background:#f8f9fa; border:1px solid #ddd; border-radius:4px; font-family:monospace;">
+        Loading configuration...
+    </div>
+</div>
+
+<script>
+async function loadConfig() {
+    try {
+        const res = await fetch('/api/config');
+        const data = await res.json();
+        document.getElementById('configContent').innerHTML = `<pre>${JSON.stringify(data, null, 4)}</pre>`;
+    } catch(e) {
+        document.getElementById('configContent').textContent = 'Error loading configuration: ' + e.message;
+    }
+}
+window.onload = loadConfig;
+</script>

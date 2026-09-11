@@ -1,0 +1,96 @@
+@page
+@{ ViewData["Title"] = "NAE-XML"; }
+
+<div class="card">
+    <h2>NAE-XML Client</h2>
+    <div style="margin-bottom: 16px;">
+        <strong>Connection Status: </strong><span id="connStatus" style="padding:4px 8px; background:#e74c3c; color:white; border-radius:4px;">Disconnected</span>
+    </div>
+    <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+        <button class="btn" onclick="naeConnect()">Connect</button>
+        <button class="btn" style="background:#95a5a6;" onclick="naeDisconnect()">Disconnect</button>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Send NAE-XML Operation</h3>
+    <div style="display: grid; gap: 16px;">
+        <div>
+            <label><strong>Operation:</strong></label><br/>
+            <select id="naeOp" style="width:100%; padding:8px; box-sizing:border-box;">
+                <option value="KeyLookup">Key Lookup</option>
+                <option value="KeyManagement">Key Management</option>
+                <option value="Encrypt">Encryption Request</option>
+                <option value="Decrypt">Decryption Request</option>
+            </select>
+        </div>
+        <div>
+            <label><strong>Key Name:</strong></label><br/>
+            <input type="text" id="naeKeyName" placeholder="Key name" style="width:100%; padding:8px; box-sizing:border-box;" />
+        </div>
+        <div>
+            <label><strong>Data (optional):</strong></label><br/>
+            <textarea id="naeData" rows="3" style="width:100%; padding:8px; box-sizing:border-box;" placeholder="Data payload..."></textarea>
+        </div>
+        <button class="btn" onclick="naeSendRequest()">Send Request</button>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Request / Response</h3>
+    <div id="naeStatus" style="padding:8px; display:none;"></div>
+    <pre id="naeResult" style="background:#ecf0f1; padding:16px; min-height:60px; white-space:pre-wrap;"></pre>
+</div>
+
+<script>
+async function naeConnect() {
+    const statusEl = document.getElementById('naeStatus');
+    const connEl = document.getElementById('connStatus');
+    statusEl.style.display = 'block'; statusEl.style.background = '#f39c12'; statusEl.style.color = 'white';
+    statusEl.textContent = 'Connecting...';
+    try {
+        const res = await fetch('/api/nae/connect', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+            connEl.style.background = '#27ae60'; connEl.textContent = 'Connected';
+            statusEl.style.background = '#27ae60'; statusEl.textContent = 'Connected';
+        } else {
+            connEl.style.background = '#e74c3c'; connEl.textContent = 'Disconnected';
+            statusEl.style.background = '#e74c3c'; statusEl.textContent = 'Connection Failed';
+        }
+        document.getElementById('naeResult').textContent = JSON.stringify(data, null, 2);
+    } catch(e) {
+        statusEl.style.background = '#e74c3c'; statusEl.textContent = 'Error';
+        document.getElementById('naeResult').textContent = 'Error: ' + e.message;
+    }
+}
+
+function naeDisconnect() {
+    document.getElementById('connStatus').style.background = '#e74c3c';
+    document.getElementById('connStatus').textContent = 'Disconnected';
+    document.getElementById('naeStatus').style.display = 'none';
+    document.getElementById('naeResult').textContent = 'Disconnected.';
+}
+
+async function naeSendRequest() {
+    const statusEl = document.getElementById('naeStatus');
+    statusEl.style.display = 'block'; statusEl.style.background = '#f39c12'; statusEl.style.color = 'white';
+    statusEl.textContent = 'Sending request...';
+    try {
+        const res = await fetch('/api/nae/request', { method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({
+                operation: document.getElementById('naeOp').value,
+                keyName: document.getElementById('naeKeyName').value,
+                data: document.getElementById('naeData').value
+            })
+        });
+        const data = await res.json();
+        statusEl.style.background = data.success ? '#27ae60' : '#e74c3c';
+        statusEl.textContent = data.success ? 'Success' : 'Failure';
+        document.getElementById('naeResult').textContent = JSON.stringify(data, null, 2);
+    } catch(e) {
+        statusEl.style.background = '#e74c3c'; statusEl.textContent = 'Error';
+        document.getElementById('naeResult').textContent = 'Error: ' + e.message;
+    }
+}
+</script>

@@ -1,0 +1,51 @@
+@page
+@{ ViewData["Title"] = "Logs"; }
+
+<div class="card">
+    <h2>System Logs</h2>
+    <p>Real-time log trail demonstrating execution telemetry and tracing.</p>
+    
+    <div style="display: flex; gap: 8px; margin-bottom: 20px;">
+        <button class="btn" onclick="fetchLogs()">Refresh Logs</button>
+        <button class="btn" style="background:#9b59b6;" onclick="exportLogs()">Export JSON</button>
+    </div>
+
+    <div style="background:#2c3e50; color:#ecf0f1; padding:16px; border-radius:4px; max-height:500px; overflow-y:auto;">
+        <pre id="logOutput" style="font-family:monospace; font-size:0.85em; white-space:pre-wrap; word-wrap:break-word;">Loading logs...</pre>
+    </div>
+</div>
+
+<script>
+let currentLogs = [];
+
+async function fetchLogs() {
+    const out = document.getElementById('logOutput');
+    out.textContent = 'Fetching logs from /app/logs/...';
+    try {
+        const res = await fetch('/api/logs');
+        const lines = await res.json();
+        currentLogs = lines;
+        if (lines.length > 0) {
+            out.textContent = lines.join('\n');
+        } else {
+            out.textContent = 'No logs available. Execute some operations first.';
+        }
+    } catch(e) {
+        out.textContent = 'Failed to fetch logs: ' + e.message;
+    }
+}
+
+function exportLogs() {
+    const data = JSON.stringify({ logs: currentLogs }, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'cadp-logs-export.json';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+// Auto-fetch on load
+window.onload = fetchLogs;
+</script>

@@ -1,0 +1,15 @@
+services:
+  cadp-integration:
+    build:
+      context: ./cadp-dotnet-client
+    ports:
+      - "${WEB_PORT:-8080}:8080"
+    env_file: .env
+    volumes:
+      - ./logs:/app/logs
+      - ./test-vectors:/app/test-vectors
+
+  kmip-client:
+    build:
+      context: ./kmip-client
+    env_file: .env

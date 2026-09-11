@@ -1,0 +1,1262 @@
+Build a production-quality, containerized lab application for demonstrating Thales CADP Application Integration.
+
+IMPORTANT:
+This is a hands-on integration lab. Do NOT build only a collection of scripts or mock functionality. Build a real working web application with a .NET backend, a browser-based web interface, containerization, configuration through environment variables, logging, test support, and clear documentation.
+
+The application must integrate with a real CADP environment. Do not hard-code or invent CADP protocol messages. Any CADP/NAE-XML request format must follow the approved Thales documentation/configuration supplied to the project.
+
+============================================================
+1. LAB REQUIREMENT
+============================================================
+
+The mandatory lab requirement is:
+
+"Build a .NET string/file encryption client with safe streaming; use PyKMIP or another client to create/get/locate/activate/revoke test keys; build a TLS TCP client for approved NAE-XML key and crypto requests; execute negative tests without hard-delete."
+
+Required submission:
+
+"Three source packages with READMEs, sequence diagrams, test vectors, operation-state matrix, logs and failure matrix."
+
+The application must therefore demonstrate:
+
+1. .NET string encryption/decryption
+2. .NET file encryption/decryption
+3. Safe streaming/chunk processing
+4. KMIP key lifecycle operations
+5. NAE-XML over TLS/TCP
+6. Key requests
+7. Crypto requests
+8. Positive tests
+9. Negative tests
+10. Key revocation without hard-delete
+11. Logging and evidence
+12. Web-based interface
+13. Containerized deployment
+
+============================================================
+2. HIGH-LEVEL ARCHITECTURE
+============================================================
+
+Build the project using a modular architecture:
+
+                    Browser
+                       |
+                       | HTTP/HTTPS
+                       v
+             +---------------------+
+             | ASP.NET Core Web UI |
+             | / REST API          |
+             +----------+----------+
+                        |
+          +-------------+-------------+
+          |             |             |
+          v             v             v
+   Encryption       KMIP Client   NAE-XML Client
+     Service          Service        Service
+          |             |             |
+          |             |             |
+          v             v             v
+       CADP        KMIP Endpoint   NAE-XML Endpoint
+                                  over TLS/TCP
+
+The primary application must be ASP.NET Core/.NET.
+
+For KMIP, PyKMIP is explicitly allowed by the lab requirement. It is acceptable to implement KMIP as a separate Python service/container if this produces a cleaner and more reliable architecture.
+
+NAE-XML should preferably be implemented in the .NET application unless the protocol/client requirements make a separate service more appropriate.
+
+Do not replace the required .NET encryption client with Python.
+
+============================================================
+3. CONTAINERIZATION
+============================================================
+
+The entire application MUST be containerized.
+
+Provide:
+
+- Dockerfile for the .NET application
+- Dockerfile for the KMIP/PyKMIP service if a separate service is used
+- docker-compose.yml
+- .dockerignore
+- .env.example
+- health checks
+- persistent/log volume configuration where appropriate
+
+The application must start with:
+
+docker compose up -d --build
+
+The web interface must be exposed on a configurable host port.
+
+Default:
+
+http://localhost:8080
+
+Use an environment variable such as:
+
+WEB_PORT=8080
+
+Docker Compose should expose:
+
+8080:8080
+
+or an equivalent configurable mapping.
+
+The application must listen on 0.0.0.0 inside the container, NOT only localhost.
+
+Example:
+
+ASPNETCORE_URLS=http://0.0.0.0:8080
+
+Do not require users to install .NET directly on the host.
+
+============================================================
+4. WEB INTERFACE
+============================================================
+
+Create a clean web interface.
+
+The UI should have a dashboard and separate sections/tabs/pages.
+
+Main navigation:
+
+- Dashboard
+- String Encryption
+- File Encryption
+- KMIP Key Management
+- NAE-XML
+- Test Runner
+- Logs
+- Configuration
+- Documentation
+
+============================================================
+5. DASHBOARD
+============================================================
+
+Create a dashboard showing:
+
+CADP Integration Status
+-----------------------
+- Application status
+- CADP connectivity
+- KMIP connectivity
+- NAE-XML connectivity
+- TLS status
+- Last successful operation
+- Last failed operation
+
+Key Statistics
+--------------
+- Active test keys
+- Revoked test keys
+- Encryption tests passed
+- Encryption tests failed
+- KMIP tests passed
+- NAE-XML tests passed
+- Negative tests passed
+
+Do not expose credentials or secrets on the dashboard.
+
+Provide buttons:
+
+[ Test CADP ]
+[ Test KMIP ]
+[ Test NAE-XML ]
+[ Run Smoke Test ]
+
+============================================================
+6. STRING ENCRYPTION
+============================================================
+
+Create a web page for string encryption/decryption.
+
+UI:
+
+Input plaintext:
+[____________________________]
+
+Key identifier:
+[____________________________]
+
+Algorithm:
+[ AES / supported CADP option ]
+
+Operation:
+[ Encrypt ]
+
+Output:
+[ ciphertext ]
+
+Buttons:
+
+[Encrypt]
+[Decrypt]
+[Clear]
+
+The backend must perform actual CADP-backed encryption.
+
+Do not implement fake/local encryption merely to make the UI work.
+
+The application must clearly distinguish:
+
+- CADP encryption
+- local utility/test operations
+
+Never log plaintext, ciphertext, credentials, or keys unless explicitly configured for safe test logging.
+
+============================================================
+7. FILE ENCRYPTION
+============================================================
+
+Create a file encryption/decryption interface.
+
+Features:
+
+- Upload file
+- Select encryption key
+- Select supported algorithm/mode
+- Encrypt
+- Decrypt
+- Download resulting test artifact
+- Display operation status
+- Display bytes processed
+- Display duration
+- Display success/failure
+
+IMPORTANT:
+Implement SAFE STREAMING.
+
+Do NOT use:
+
+File.ReadAllBytes()
+
+for arbitrary file sizes.
+
+Do NOT load an entire file into memory.
+
+Use streaming APIs:
+
+Stream
+FileStream
+BufferedStream
+CryptoStream where appropriate
+
+Process data in chunks.
+
+Example conceptual flow:
+
+Input File
+    |
+    v
+Read Chunk
+    |
+    v
+Encrypt
+    |
+    v
+Write Chunk
+    |
+    v
+Repeat
+    |
+    v
+Finalize
+    |
+    v
+Output File
+
+The application must correctly handle:
+
+- empty files
+- small files
+- medium files
+- large files
+- binary files
+- files containing Unicode text
+- interrupted operations
+- corrupted ciphertext
+- insufficient permissions
+- invalid key identifiers
+
+Ensure finalization/tag/metadata handling is correct for the selected algorithm/protocol.
+
+Do not assume that independently encrypting arbitrary chunks with the same IV is safe.
+
+Streaming must respect the actual CADP cryptographic API/protocol semantics.
+
+============================================================
+8. STREAMING SAFETY
+============================================================
+
+Pay particular attention to:
+
+- IV/nonce generation
+- IV/nonce uniqueness
+- authentication tags if applicable
+- padding
+- block boundaries
+- chunk boundaries
+- finalization
+- partial writes
+- partial files
+- exceptions
+- stream disposal
+- cancellation
+- retry behavior
+- memory usage
+
+Never reuse an IV/nonce in an unsafe way.
+
+Do not silently retry cryptographic operations if doing so could reuse cryptographic state.
+
+If the CADP API requires a specific streaming/finalization model, follow that model exactly.
+
+Create tests specifically around chunk boundaries:
+
+- 0 bytes
+- 1 byte
+- 15 bytes
+- 16 bytes
+- 17 bytes
+- 31 bytes
+- 32 bytes
+- 33 bytes
+- 4 KB
+- 64 KB
+- larger test file
+
+============================================================
+9. KMIP INTEGRATION
+============================================================
+
+Implement KMIP key lifecycle functionality.
+
+PyKMIP is explicitly allowed.
+
+The application must support:
+
+1. Create
+2. Locate
+3. Get
+4. Activate
+5. Revoke
+
+Do NOT implement hard-delete as part of the normal test workflow.
+
+The expected lifecycle is:
+
+Create
+  |
+  v
+Pre-Active / appropriate initial state
+  |
+  v
+Activate
+  |
+  v
+Active
+  |
+  v
+Use
+  |
+  v
+Revoke
+  |
+  v
+Revoked
+
+The exact KMIP state transitions must follow the actual KMIP server behavior.
+
+The UI should provide:
+
+Create Test Key
+----------------
+Key name
+Algorithm
+Key size
+Description/metadata
+
+[Create]
+
+After creation display:
+
+- Key UUID
+- Key name
+- Algorithm
+- State
+- Creation result
+
+Never display raw key material.
+
+============================================================
+10. KMIP LOCATE
+============================================================
+
+Create a Locate interface.
+
+Allow searching by supported attributes such as:
+
+- key name
+- UUID
+- algorithm
+- state
+
+Display:
+
+- matching key identifiers
+- key names
+- states
+- algorithm
+
+Do not expose key material.
+
+============================================================
+11. KMIP GET
+============================================================
+
+Implement Get.
+
+Input:
+
+Key UUID
+
+Output:
+
+- operation success/failure
+- metadata
+- state
+- permitted information
+
+Do not display raw key material in the web UI.
+
+============================================================
+12. KMIP ACTIVATE
+============================================================
+
+Provide an Activate operation.
+
+Input:
+
+Key UUID
+
+Before activation, retrieve/display the current state.
+
+Then perform activation if allowed.
+
+Record:
+
+- key UUID
+- old state
+- new state
+- timestamp
+- result
+
+============================================================
+13. KMIP REVOKE
+============================================================
+
+Provide a Revoke operation.
+
+This is critical.
+
+DO NOT hard-delete the test key.
+
+Instead:
+
+Active
+  |
+  v
+Revoke
+  |
+  v
+Revoked
+
+After revocation, attempt an operation using the revoked key and verify that the expected operation is rejected.
+
+The UI must make it clear:
+
+"Revoke only - no hard delete."
+
+============================================================
+14. NAE-XML TLS CLIENT
+============================================================
+
+Implement an NAE-XML client using a TLS TCP connection.
+
+The client must:
+
+1. Resolve configured CADP/NAE endpoint
+2. Open TCP connection
+3. Establish TLS
+4. Validate the server certificate
+5. Authenticate using the approved mechanism
+6. Construct an approved NAE-XML request
+7. Send request
+8. Receive response
+9. Parse response
+10. Display structured result
+11. Handle protocol errors safely
+12. Close connection correctly
+
+Do NOT invent an XML protocol.
+
+Do NOT assume request names, namespaces, authentication formats, framing, or cryptographic operations.
+
+Create an abstraction such as:
+
+INaeXmlClient
+
+with methods appropriate to the approved NAE-XML interface.
+
+For example conceptually:
+
+ConnectAsync()
+AuthenticateAsync()
+SendRequestAsync()
+ParseResponse()
+CloseAsync()
+
+But adapt the actual implementation to the approved Thales NAE-XML protocol documentation.
+
+============================================================
+15. NAE-XML TLS CONFIGURATION
+============================================================
+
+Configuration must be environment based.
+
+Example:
+
+NAE_HOST=
+NAE_PORT=
+NAE_USERNAME=
+NAE_PASSWORD=
+NAE_CA_CERT=
+NAE_CLIENT_CERT=
+NAE_CLIENT_KEY=
+
+Do not commit credentials into Git.
+
+Support certificate verification.
+
+Do NOT implement:
+
+verify=False
+trust-all certificates
+blind certificate acceptance
+
+unless explicitly provided as a clearly isolated lab-only diagnostic option, disabled by default.
+
+============================================================
+16. NAE-XML OPERATIONS
+============================================================
+
+The application should expose approved operations such as:
+
+- Key lookup/request
+- Key management request
+- Encryption request
+- Decryption request
+- Other approved CADP crypto requests
+
+Only implement operations supported by the actual CADP/NAE-XML documentation available to the project.
+
+Each request must display:
+
+- operation
+- endpoint
+- timestamp
+- request ID/correlation ID
+- success/failure
+- response status
+- sanitized response information
+
+Never expose passwords, private keys, or raw secrets in logs/UI.
+
+============================================================
+17. POSITIVE TESTS
+============================================================
+
+Create a test runner.
+
+Positive tests should include:
+
+String:
+- encrypt valid plaintext
+- decrypt valid ciphertext
+- encrypt/decrypt Unicode
+- encrypt/decrypt empty or appropriately handled input
+
+File:
+- encrypt small file
+- decrypt small file
+- encrypt binary file
+- encrypt larger file
+- decrypt and compare SHA-256
+
+KMIP:
+- create key
+- locate key
+- get key
+- activate key
+- verify active state
+- use active key
+- revoke key
+
+NAE-XML:
+- TLS connection
+- authentication
+- valid key request
+- valid crypto request
+- valid response parsing
+
+============================================================
+18. NEGATIVE TESTS
+============================================================
+
+Implement negative tests WITHOUT hard-delete.
+
+Examples:
+
+Authentication:
+- invalid CADP credentials
+- invalid KMIP credentials
+- invalid NAE credentials
+
+Connectivity:
+- invalid host
+- invalid port
+- unavailable endpoint
+- TLS certificate failure
+
+KMIP:
+- unknown UUID
+- invalid key state
+- operation against revoked key
+- invalid operation
+- invalid attributes
+
+NAE-XML:
+- malformed XML
+- unsupported operation
+- invalid request
+- invalid authentication
+- invalid key identifier
+- invalid crypto parameters
+- TLS failure
+
+Encryption:
+- invalid key
+- revoked key
+- corrupted ciphertext
+- truncated ciphertext
+- invalid input
+- interrupted file operation
+
+Expected behavior:
+
+The application should return a controlled error.
+
+It must NOT:
+
+- crash the container
+- expose secrets
+- leak stack traces to normal users
+- silently report success
+- hard-delete a test key
+
+============================================================
+19. TEST VECTORS
+============================================================
+
+Create test vectors containing:
+
+- plaintext
+- expected input properties
+- key identifier
+- algorithm
+- IV/nonce where applicable
+- ciphertext where appropriate
+- authentication tag where applicable
+- expected result
+
+Do not include production secrets.
+
+Use clearly marked test keys only.
+
+Include deterministic vectors where supported and appropriate.
+
+For random IV/nonce operations, verify properties rather than expecting identical ciphertext.
+
+============================================================
+20. OPERATION-STATE MATRIX
+============================================================
+
+Create a document/table describing operations and expected key states.
+
+Example:
+
+Operation | Pre-Active | Active | Revoked
+------------------------------------------
+Encrypt   | FAIL       | PASS   | FAIL
+Decrypt   | FAIL       | PASS   | FAIL
+Get       | according to server policy
+Locate    | according to server policy
+Activate  | PASS       | N/A    | FAIL
+Revoke    | according to server policy
+
+Do not blindly assume these exact states. Verify them against the actual CADP/KMIP behavior and document the observed result.
+
+============================================================
+21. FAILURE MATRIX
+============================================================
+
+Create:
+
+failure-matrix.md
+
+Columns:
+
+Test ID
+Component
+Failure Condition
+Expected Error
+Actual Error
+Expected HTTP Status
+Actual HTTP Status
+Recovery
+Security Consideration
+Result
+
+Examples:
+
+KMIP-NEG-01
+Unknown key UUID
+Expected key-not-found
+PASS
+
+NAE-NEG-02
+Invalid TLS certificate
+Expected TLS failure
+PASS
+
+ENC-NEG-03
+Corrupted ciphertext
+Expected authentication/decryption failure
+PASS
+
+============================================================
+22. LOGGING
+============================================================
+
+Implement structured logging.
+
+Use:
+
+- timestamp
+- log level
+- component
+- operation
+- correlation ID
+- result
+- duration
+- sanitized error
+
+Example:
+
+2026-09-11T10:30:00Z
+INFO
+component=KMIP
+operation=CREATE
+correlationId=abc123
+result=SUCCESS
+
+Never log:
+
+- passwords
+- private keys
+- raw key material
+- authentication tokens
+- sensitive plaintext
+- client private certificates
+
+Support configurable log level.
+
+============================================================
+23. SECURITY
+============================================================
+
+This is a security-focused lab.
+
+Follow these principles:
+
+- secrets from environment variables or mounted secret files
+- no credentials committed to source
+- no credentials in frontend JavaScript
+- no raw key material in UI
+- no hard-delete
+- TLS certificate verification
+- input validation
+- request size limits
+- upload size limits
+- safe temporary file handling
+- cleanup of temporary files
+- controlled error messages
+- correlation IDs
+- structured logs
+
+Use secure defaults.
+
+============================================================
+24. WEB API
+============================================================
+
+Implement REST endpoints behind the UI.
+
+Suggested endpoints:
+
+GET  /api/health
+
+GET  /api/status
+
+POST /api/encryption/string/encrypt
+POST /api/encryption/string/decrypt
+
+POST /api/encryption/file/encrypt
+POST /api/encryption/file/decrypt
+
+POST /api/kmip/create
+POST /api/kmip/locate
+POST /api/kmip/get
+POST /api/kmip/activate
+POST /api/kmip/revoke
+
+POST /api/nae/connect
+POST /api/nae/request
+
+POST /api/tests/run-positive
+POST /api/tests/run-negative
+
+GET  /api/logs
+
+Adapt endpoint design as necessary.
+
+============================================================
+25. HEALTH CHECKS
+============================================================
+
+Implement:
+
+/health
+
+and component health checks.
+
+Show:
+
+Application: UP
+KMIP: UP/DOWN/NOT CONFIGURED
+NAE-XML: UP/DOWN/NOT CONFIGURED
+CADP: UP/DOWN/NOT CONFIGURED
+
+Do not make the entire application unhealthy simply because an optional integration is not configured.
+
+Clearly distinguish:
+
+UP
+DOWN
+NOT CONFIGURED
+AUTHENTICATION FAILED
+TLS FAILED
+
+============================================================
+26. FRONTEND
+============================================================
+
+Use a clean professional interface.
+
+Preferred:
+
+ASP.NET Core + Razor/Blazor
+
+or another appropriate frontend integrated into the .NET application.
+
+Keep the UI simple.
+
+Use forms, tables, status indicators and operation results.
+
+Every operation should show:
+
+- Started
+- In progress
+- Success
+- Failure
+
+Do not make the interface unnecessarily complex.
+
+============================================================
+27. DOCKER COMPOSE
+============================================================
+
+Provide a complete docker-compose.yml.
+
+Example architecture:
+
+services:
+
+  cadp-integration:
+    build:
+      context: ./dotnet-app
+    ports:
+      - "${WEB_PORT:-8080}:8080"
+    environment:
+      ...
+    volumes:
+      - ./logs:/app/logs
+      - ./test-data:/app/test-data
+
+  kmip-client:
+    build:
+      context: ./kmip-client
+    environment:
+      ...
+
+Only create the KMIP service if required by the chosen architecture.
+
+Do NOT create a fake CADP/KMIP server unless explicitly requested.
+
+The application must connect to the actual external CADP environment configured through environment variables.
+
+============================================================
+28. CONFIGURATION
+============================================================
+
+Provide:
+
+.env.example
+
+Example:
+
+WEB_PORT=8080
+
+CADP_HOST=
+CADP_PORT=
+
+KMIP_HOST=
+KMIP_PORT=
+KMIP_USERNAME=
+KMIP_PASSWORD=
+
+NAE_HOST=
+NAE_PORT=
+NAE_USERNAME=
+NAE_PASSWORD=
+
+TLS_CA_CERT_PATH=
+TLS_CLIENT_CERT_PATH=
+TLS_CLIENT_KEY_PATH=
+
+LOG_LEVEL=Information
+
+Never place actual credentials in .env.example.
+
+============================================================
+29. PROJECT STRUCTURE
+============================================================
+
+Create three source packages because the submission explicitly requires three source packages.
+
+Suggested:
+
+cadp-dotnet-client/
+    README.md
+    Dockerfile
+    src/
+    tests/
+
+kmip-client/
+    README.md
+    Dockerfile
+    src/
+    tests/
+
+nae-xml-client/
+    README.md
+    Dockerfile or integrated implementation
+    src/
+    tests/
+
+Then create a top-level integration project:
+
+cadp-integration-lab/
+    docker-compose.yml
+    .env.example
+    README.md
+    docs/
+    diagrams/
+    test-vectors/
+    evidence/
+    logs/
+
+If NAE-XML is implemented inside the main .NET application, still package/document it as the third logical source package.
+
+============================================================
+30. DOCUMENTATION
+============================================================
+
+Create comprehensive documentation.
+
+Top-level README must contain:
+
+1. Project overview
+2. Architecture
+3. Prerequisites
+4. CADP requirements
+5. Configuration
+6. Environment variables
+7. Docker deployment
+8. Web UI access
+9. String encryption
+10. File encryption
+11. Streaming implementation
+12. KMIP lifecycle
+13. NAE-XML/TLS
+14. Positive testing
+15. Negative testing
+16. Troubleshooting
+17. Security considerations
+18. Evidence collection
+
+Each source package must have its own README.
+
+============================================================
+31. SEQUENCE DIAGRAMS
+============================================================
+
+Create Mermaid sequence diagrams.
+
+Required diagrams:
+
+1. String encryption
+2. File streaming encryption
+3. KMIP key creation
+4. KMIP activation
+5. KMIP revoke
+6. NAE-XML TLS connection
+7. NAE-XML crypto request
+8. Negative test flow
+
+Example:
+
+Browser
+   |
+   v
+ASP.NET Core
+   |
+   v
+Encryption Service
+   |
+   v
+CADP
+   |
+   v
+Key Management System
+
+Document exact behavior based on the actual implementation.
+
+============================================================
+32. EVIDENCE
+============================================================
+
+Design the application so that lab evidence can easily be collected.
+
+Every operation should generate a correlation ID.
+
+Provide an operation history page.
+
+Example:
+
+Time | Component | Operation | Key ID | Result | Duration
+
+Do not display secrets.
+
+Allow logs to be exported as a text/JSON file if appropriate.
+
+============================================================
+33. TESTING
+============================================================
+
+Use automated tests where possible.
+
+Use:
+
+- xUnit/NUnit for .NET
+- pytest for PyKMIP if Python is used
+- integration tests where actual CADP access is available
+
+Separate:
+
+Unit tests
+Integration tests
+Positive tests
+Negative tests
+
+Tests requiring real CADP should be clearly marked as integration tests and should not run automatically if CADP credentials are absent.
+
+============================================================
+34. NO MOCKING OF THE ACTUAL LAB RESULT
+============================================================
+
+Do not fake successful CADP operations.
+
+If CADP is unavailable:
+
+Show:
+
+CADP: NOT CONFIGURED
+
+or
+
+CADP: CONNECTION FAILED
+
+Do not show:
+
+CADP: SUCCESS
+
+unless the actual request succeeded.
+
+You may use mock/test adapters ONLY for unit testing, and they must be clearly separated from the real integration implementation.
+
+============================================================
+35. ERROR HANDLING
+============================================================
+
+The application must never expose raw exceptions to the user in production mode.
+
+Return useful messages such as:
+
+"KMIP key was not found."
+
+"TLS certificate validation failed."
+
+"Encryption operation failed."
+
+"Key is revoked and cannot be used."
+
+Log the detailed sanitized error internally.
+
+============================================================
+36. ACCEPTANCE CRITERIA
+============================================================
+
+The application is complete only when all of the following are true:
+
+[ ] Docker build succeeds
+[ ] docker compose up succeeds
+[ ] Web interface is accessible on port 8080
+[ ] Application listens on 0.0.0.0
+[ ] Health endpoint works
+[ ] String encryption works against real CADP
+[ ] String decryption works
+[ ] File encryption works
+[ ] File decryption works
+[ ] Large-file streaming does not load entire file into memory
+[ ] SHA-256(original) == SHA-256(decrypted)
+[ ] KMIP Create works
+[ ] KMIP Locate works
+[ ] KMIP Get works
+[ ] KMIP Activate works
+[ ] KMIP Revoke works
+[ ] No hard-delete is used
+[ ] Revoked-key negative test works
+[ ] NAE-XML TLS connection works
+[ ] NAE-XML authentication works
+[ ] Approved NAE-XML request works
+[ ] Approved crypto request works
+[ ] Negative NAE-XML tests work
+[ ] Logs are generated
+[ ] Secrets are not logged
+[ ] Test vectors are included
+[ ] Operation-state matrix is included
+[ ] Failure matrix is included
+[ ] Sequence diagrams are included
+[ ] README files are complete
+
+============================================================
+37. IMPORTANT IMPLEMENTATION RULE
+============================================================
+
+DO NOT start by writing fake encryption functionality.
+
+First inspect the project and identify:
+
+- .NET version
+- available CADP SDK/API
+- CADP version
+- KMIP endpoint
+- NAE-XML endpoint
+- TLS requirements
+- available certificates
+- approved NAE-XML request format
+- authentication mechanism
+
+If any CADP-specific information is missing, create a clean configuration/adapter interface and clearly mark the missing values instead of inventing them.
+
+The application must be designed so that the real CADP endpoint can be configured without rewriting the application.
+
+============================================================
+38. DEVELOPMENT ORDER
+============================================================
+
+Implement in this order:
+
+Phase 1:
+Project structure + Docker + ASP.NET Core + web UI
+
+Phase 2:
+Configuration + health checks + logging
+
+Phase 3:
+.NET CADP string encryption
+
+Phase 4:
+.NET CADP file encryption with safe streaming
+
+Phase 5:
+KMIP client and key lifecycle
+
+Phase 6:
+NAE-XML TLS client
+
+Phase 7:
+Positive tests
+
+Phase 8:
+Negative tests
+
+Phase 9:
+Test vectors + operation-state matrix + failure matrix
+
+Phase 10:
+Sequence diagrams + documentation
+
+Phase 11:
+End-to-end Docker testing
+
+At the end, provide:
+
+1. Complete source tree
+2. Dockerfile(s)
+3. docker-compose.yml
+4. .env.example
+5. README files
+6. Test suite
+7. Sequence diagrams
+8. Test vectors
+9. Operation-state matrix
+10. Failure matrix
+11. Example logs
+12. Exact commands to build and run
+13. Exact URL/port for the web interface
+
+Do not stop at scaffolding. Implement as much of the real functionality as the available CADP documentation/configuration allows.

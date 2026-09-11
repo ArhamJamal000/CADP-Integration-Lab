@@ -1,0 +1,47 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="card">
+    <h2>Dashboard</h2>
+    <p>CADP Integration Lab is running.</p>
+</div>
+
+<div class="card">
+    <h3>Health Status</h3>
+    <ul id="health-data">
+        <li>Loading health data...</li>
+    </ul>
+    <script>
+        fetch('/health')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('health-data').innerHTML = `
+                    <li><strong>Application:</strong> ${data.application}</li>
+                    <li><strong>KMIP:</strong> ${data.kmip}</li>
+                    <li><strong>NAE-XML:</strong> ${data.naeXml}</li>
+                    <li><strong>CADP:</strong> ${data.cadp}</li>
+                `;
+            });
+    </script>
+</div>
+
+<div class="card">
+    <h3>Actions</h3>
+    <button class="btn">Test CADP</button>
+    <button class="btn">Test KMIP</button>
+    <button class="btn">Test NAE-XML</button>
+    <button class="btn">Run Smoke Test</button>
+    <p style="margin-top: 10px; font-size: 0.9em; color: gray;">Status: Ready.</p>
+</div>
+
+@functions {
+    public class IndexModel : Microsoft.AspNetCore.Mvc.RazorPages.PageModel
+    {
+        public void OnGet()
+        {
+        }
+    }
+}
