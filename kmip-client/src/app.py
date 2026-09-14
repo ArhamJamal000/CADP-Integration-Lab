@@ -1,6 +1,13 @@
 import os
 import json
 import traceback
+import logging
+
+# Enable PyKMIP debug logging
+logging.basicConfig(level=logging.DEBUG)
+kmip_logger = logging.getLogger("kmip.pie.client")
+kmip_logger.setLevel(logging.DEBUG)
+
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
