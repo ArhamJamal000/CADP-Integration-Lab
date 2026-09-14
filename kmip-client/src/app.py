@@ -27,24 +27,23 @@ def get_kmip_client():
         from kmip.pie.client import ProxyKmipClient
         from kmip.core.enums import KMIPVersion
 
-        client = ProxyKmipClient(
-            hostname=KMIP_HOST,
-            port=KMIP_PORT,
-            cert="/certs/client.crt",
-            key="/certs/client.key",
-            ca="/certs/Certificate (1).pem",
-            username=KMIP_USERNAME,       
-            password=KMIP_PASSWORD,       
-            kmip_version=KMIPVersion.KMIP_1_4,
-            ssl_version="PROTOCOL_TLSv1_2"
-        )
-
-        # PyKMIP 0.10.0 ConfigHelper coerces "" to None, causing ValueError
-        # Bypass it by forcing the exact string into the underlying proxy object
-        if KMIP_USERNAME is not None:
-            client.proxy.username = KMIP_USERNAME
-        if KMIP_PASSWORD is not None:
-            client.proxy.password = KMIP_PASSWORD
+        kwargs = {
+            "hostname": KMIP_HOST,
+            "port": KMIP_PORT,
+            "cert": "/certs/client.crt",
+            "key": "/certs/client.key",
+            "ca": "/certs/Certificate (1).pem",
+            "ssl_version": "PROTOCOL_TLSv1_2"
+        }
+        
+        # Only inject the Credential structure into the KMIP payload 
+        # if BOTH username and password are provided as non-empty strings.
+        # Otherwise, rely purely on mTLS certificate mapping.
+        if KMIP_USERNAME and KMIP_PASSWORD:
+            kwargs["username"] = KMIP_USERNAME
+            kwargs["password"] = KMIP_PASSWORD
+            
+        client = ProxyKmipClient(**kwargs)
 
         return client
 

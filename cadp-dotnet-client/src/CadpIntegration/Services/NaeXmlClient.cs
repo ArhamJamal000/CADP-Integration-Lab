@@ -208,7 +208,7 @@ public class NaeXmlClient : INaeXmlClient
         if (sslPolicyErrors == SslPolicyErrors.None)
             return true;
 
-        if (sslPolicyErrors == SslPolicyErrors.RemoteCertificateChainErrors && chain != null && certificate != null)
+        if (chain != null && certificate != null)
         {
             try
             {
@@ -216,7 +216,8 @@ public class NaeXmlClient : INaeXmlClient
                 {
                     var rootCa = X509Certificate2.CreateFromPemFile("/certs/Certificate (1).pem");
                     chain.ChainPolicy.ExtraStore.Add(rootCa);
-                    chain.ChainPolicy.VerificationFlags = X509VerificationFlags.AllowUnknownCertificateAuthority;
+                    chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
+                    chain.ChainPolicy.VerificationFlags = X509VerificationFlags.AllowUnknownCertificateAuthority | X509VerificationFlags.IgnoreCertificateAuthorityRevocationUnknown | X509VerificationFlags.IgnoreEndRevocationUnknown;
                     bool isValid = chain.Build((X509Certificate2)certificate);
                     
                     if (isValid)
