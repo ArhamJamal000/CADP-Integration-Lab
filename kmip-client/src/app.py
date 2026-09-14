@@ -23,6 +23,7 @@ def get_kmip_client():
         return None
 
     try:
+        import ssl
         from kmip.pie.client import ProxyKmipClient
         from kmip.core.enums import KMIPVersion
 
@@ -38,7 +39,8 @@ def get_kmip_client():
             ca="/certs/Certificate (1).pem",
             username=actual_username,
             password=actual_password,
-            kmip_version=KMIPVersion.KMIP_1_4
+            kmip_version=KMIPVersion.KMIP_1_4,
+            ssl_version=ssl.PROTOCOL_TLSv1_2
         )
 
         return client
@@ -156,8 +158,24 @@ def locate_keys():
         return jsonify({"success": False, "error": "KMIP: NOT CONFIGURED"}), 400
 
     try:
+        from kmip.core.enums import AttributeType
+        from kmip.core.attributes import Name
+
+        # Build attribute list based on input, or default empty
+        attributes_list = []
+        if data.get("name"):
+            attributes_list.append(
+                Name.create(
+                    name_value=data["name"],
+                    name_type=Name.NameType.UNINTERPRETED_TEXT_STRING
+                )
+            )
+
         with client:
-            uids = client.locate()
+            uids = client.locate(
+                maximum_items=100,
+                attributes=attributes_list if attributes_list else None
+            )
             app.logger.info(f"KMIP locate returned {len(uids)} key(s)")
             keys = []
             for uid in uids:

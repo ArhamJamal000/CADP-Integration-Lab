@@ -82,14 +82,13 @@ async function testCadp() {
 async function testKmip() {
     setStatus('Testing KMIP Connection...', '#f39c12');
     try {
-        const res = await fetch('/api/kmip/locate', {
+        const res = await fetch('/api/kmip/test', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({})
         });
         const data = await res.json();
-        const keyCount = data.keys ? data.keys.length : 0;
-        setStatus(data.success ? `KMIP: Connected (${keyCount} keys found)` : 'KMIP: ' + (data.error || 'Failed'), data.success ? '#27ae60' : '#e74c3c');
+        setStatus(data.success ? 'KMIP: Connected' : 'KMIP: ' + (data.error || 'Failed'), data.success ? '#27ae60' : '#e74c3c');
         showResult(data);
     } catch (e) {
         setStatus('KMIP: Connection Error', '#e74c3c');
