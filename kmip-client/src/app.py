@@ -40,7 +40,7 @@ def get_kmip_client():
             username=actual_username,
             password=actual_password,
             kmip_version=KMIPVersion.KMIP_1_4,
-            ssl_version=ssl.PROTOCOL_TLSv1_2
+            ssl_version="PROTOCOL_TLSv1_2"
         )
 
         return client
