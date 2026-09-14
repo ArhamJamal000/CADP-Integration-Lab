@@ -135,10 +135,7 @@ def create_key():
                 algo_enum,
                 key_size,
                 name=name,
-                cryptographic_usage_mask=[
-                    CryptographicUsageMask.ENCRYPT,
-                    CryptographicUsageMask.DECRYPT
-                ]
+                cryptographic_usage_mask=[CryptographicUsageMask.ENCRYPT]
             )
         return jsonify({
             "success": True,
