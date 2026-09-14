@@ -8,6 +8,7 @@ namespace CadpIntegration.Services;
 /// </summary>
 public interface IKmipService
 {
+    Task<KmipResult> TestConnectionAsync(CancellationToken ct);
     Task<KmipResult> CreateKeyAsync(string name, string algorithm, int keySize, CancellationToken ct);
     Task<KmipLocateResult> LocateKeysAsync(string? name, string? algorithm, string? state, CancellationToken ct);
     Task<KmipResult> GetKeyAsync(string uuid, CancellationToken ct);
@@ -34,6 +35,43 @@ public class KmipService : IKmipService
 
     private bool IsConfigured => !string.IsNullOrEmpty(_settings.KmipHost);
 
+    private async Task<string> ReadErrorBody(HttpResponseMessage response, CancellationToken ct)
+    {
+        try
+        {
+            var body = await response.Content.ReadFromJsonAsync<KmipResult>(ct);
+            return body?.Error ?? $"KMIP service returned {response.StatusCode}";
+        }
+        catch
+        {
+            try { return await response.Content.ReadAsStringAsync(ct); }
+            catch { return $"KMIP service returned {response.StatusCode}"; }
+        }
+    }
+
+    public async Task<KmipResult> TestConnectionAsync(CancellationToken ct)
+    {
+        if (!IsConfigured)
+            return new KmipResult { Success = false, Error = "KMIP: NOT CONFIGURED. Set KMIP_HOST environment variable." };
+
+        try
+        {
+            var response = await _httpClient.PostAsync("http://kmip-client:5000/kmip/test", null, ct);
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<KmipResult>(ct);
+                return result ?? new KmipResult { Success = true };
+            }
+            var error = await ReadErrorBody(response, ct);
+            return new KmipResult { Success = false, Error = error };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "KMIP connection test failed");
+            return new KmipResult { Success = false, Error = $"KMIP connection failed: {ex.Message}" };
+        }
+    }
+
     public async Task<KmipResult> CreateKeyAsync(string name, string algorithm, int keySize, CancellationToken ct)
     {
         if (!IsConfigured)
@@ -48,7 +86,8 @@ public class KmipService : IKmipService
                 var result = await response.Content.ReadFromJsonAsync<KmipResult>(ct);
                 return result ?? new KmipResult { Success = false, Error = "Empty response from KMIP service." };
             }
-            return new KmipResult { Success = false, Error = $"KMIP service returned {response.StatusCode}" };
+            var error = await ReadErrorBody(response, ct);
+            return new KmipResult { Success = false, Error = error };
         }
         catch (Exception ex)
         {
@@ -71,7 +110,8 @@ public class KmipService : IKmipService
                 var result = await response.Content.ReadFromJsonAsync<KmipLocateResult>(ct);
                 return result ?? new KmipLocateResult { Success = false, Error = "Empty response." };
             }
-            return new KmipLocateResult { Success = false, Error = $"KMIP service returned {response.StatusCode}" };
+            var error = await ReadErrorBody(response, ct);
+            return new KmipLocateResult { Success = false, Error = error };
         }
         catch (Exception ex)
         {
@@ -94,7 +134,7 @@ public class KmipService : IKmipService
                 var result = await response.Content.ReadFromJsonAsync<KmipResult>(ct);
                 return result ?? new KmipResult { Success = false, Error = "Empty response." };
             }
-            return new KmipResult { Success = false, Error = $"KMIP service returned {response.StatusCode}" };
+            return new KmipResult { Success = false, Error = await ReadErrorBody(response, ct) };
         }
         catch (Exception ex)
         {
@@ -117,7 +157,8 @@ public class KmipService : IKmipService
                 var result = await response.Content.ReadFromJsonAsync<KmipResult>(ct);
                 return result ?? new KmipResult { Success = false, Error = "Empty response." };
             }
-            return new KmipResult { Success = false, Error = $"KMIP service returned {response.StatusCode}" };
+            var errorActivate = await ReadErrorBody(response, ct);
+            return new KmipResult { Success = false, Error = errorActivate };
         }
         catch (Exception ex)
         {
@@ -141,7 +182,8 @@ public class KmipService : IKmipService
                 var result = await response.Content.ReadFromJsonAsync<KmipResult>(ct);
                 return result ?? new KmipResult { Success = false, Error = "Empty response." };
             }
-            return new KmipResult { Success = false, Error = $"KMIP service returned {response.StatusCode}" };
+            var errorRevoke = await ReadErrorBody(response, ct);
+            return new KmipResult { Success = false, Error = errorRevoke };
         }
         catch (Exception ex)
         {

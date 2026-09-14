@@ -179,6 +179,12 @@ app.MapPost("/api/encryption/file/decrypt", async (HttpContext ctx, IEncryptionS
 // ═══════════════════════════════════════════════════════════
 // Phase 6 — KMIP API
 // ═══════════════════════════════════════════════════════════
+app.MapPost("/api/kmip/test", async (IKmipService svc, CancellationToken ct) =>
+{
+    var result = await svc.TestConnectionAsync(ct);
+    return result.Success ? Results.Ok(result) : Results.BadRequest(result);
+});
+
 app.MapPost("/api/kmip/create", async (KmipCreateRequest req, IKmipService svc, CancellationToken ct) =>
 {
     var result = await svc.CreateKeyAsync(req.Name, req.Algorithm, req.KeySize, ct);

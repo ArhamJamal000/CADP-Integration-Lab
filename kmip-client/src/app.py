@@ -1,5 +1,6 @@
 import os
 import json
+import traceback
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
@@ -33,9 +34,63 @@ def get_kmip_client():
         app.logger.error(f"Failed to create KMIP client: {e}")
         return None
 
+def extract_attribute(attrs_list, attr_name):
+    """Safely extract a named attribute from a PyKMIP attributes list/tuple."""
+    try:
+        # get_attributes returns (uid, [Attribute, ...]) in PyKMIP 0.10
+        if isinstance(attrs_list, tuple) and len(attrs_list) >= 2:
+            attr_objects = attrs_list[1]
+        elif isinstance(attrs_list, list):
+            attr_objects = attrs_list
+        else:
+            # Try direct attribute access as fallback
+            val = getattr(attrs_list, attr_name, None)
+            return str(val) if val is not None else ""
+
+        for attr in attr_objects:
+            name = getattr(attr, 'attribute_name', None)
+            if name and name.value == attr_name:
+                val = getattr(attr, 'attribute_value', None)
+                return str(val.value) if val is not None else ""
+        return ""
+    except Exception as e:
+        app.logger.warning(f"Could not extract attribute '{attr_name}': {e}")
+        return ""
+
 @app.route("/")
 def index():
     return "PyKMIP Service Wrapper Running"
+
+@app.route("/kmip/test", methods=["POST"])
+def test_connection():
+    """Test KMIP connectivity — just open and close connection."""
+    if not KMIP_HOST:
+        return jsonify({
+            "success": False,
+            "error": "KMIP: NOT CONFIGURED",
+            "config": {"host": KMIP_HOST, "port": KMIP_PORT}
+        }), 400
+
+    client = get_kmip_client()
+    if client is None:
+        return jsonify({"success": False, "error": "Failed to create KMIP client"}), 500
+
+    try:
+        with client:
+            pass  # If we get here, TLS handshake succeeded
+        return jsonify({
+            "success": True,
+            "message": f"Connected to KMIP server at {KMIP_HOST}:{KMIP_PORT}",
+            "tls": "mTLS verified"
+        })
+    except Exception as e:
+        app.logger.error(f"KMIP connection test failed: {traceback.format_exc()}")
+        return jsonify({
+            "success": False,
+            "error": str(e),
+            "detail": traceback.format_exc(),
+            "config": {"host": KMIP_HOST, "port": KMIP_PORT}
+        }), 500
 
 @app.route("/kmip/create", methods=["POST"])
 def create_key():
@@ -75,7 +130,7 @@ def create_key():
             "state": "Pre-Active"
         })
     except Exception as e:
-        app.logger.error(f"KMIP create failed: {e}")
+        app.logger.error(f"KMIP create failed: {traceback.format_exc()}")
         return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route("/kmip/locate", methods=["POST"])
@@ -90,21 +145,23 @@ def locate_keys():
     try:
         with client:
             uids = client.locate()
+            app.logger.info(f"KMIP locate returned {len(uids)} key(s)")
             keys = []
             for uid in uids:
                 try:
                     attrs = client.get_attributes(uid=uid)
                     keys.append({
                         "uuid": uid,
-                        "name": str(getattr(attrs, 'object_name', '')),
-                        "state": str(getattr(attrs, 'state', '')),
-                        "algorithm": str(getattr(attrs, 'cryptographic_algorithm', ''))
+                        "name": extract_attribute(attrs, "Name"),
+                        "state": extract_attribute(attrs, "State"),
+                        "algorithm": extract_attribute(attrs, "Cryptographic Algorithm")
                     })
-                except Exception:
+                except Exception as inner_e:
+                    app.logger.warning(f"Could not get attributes for {uid}: {inner_e}")
                     keys.append({"uuid": uid, "name": "", "state": "", "algorithm": ""})
         return jsonify({"success": True, "keys": keys})
     except Exception as e:
-        app.logger.error(f"KMIP locate failed: {e}")
+        app.logger.error(f"KMIP locate failed: {traceback.format_exc()}")
         return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route("/kmip/get", methods=["POST"])
@@ -123,12 +180,12 @@ def get_key():
         return jsonify({
             "success": True,
             "uuid": uuid,
-            "name": str(getattr(attrs, 'object_name', '')),
-            "algorithm": str(getattr(attrs, 'cryptographic_algorithm', '')),
-            "state": str(getattr(attrs, 'state', ''))
+            "name": extract_attribute(attrs, "Name"),
+            "algorithm": extract_attribute(attrs, "Cryptographic Algorithm"),
+            "state": extract_attribute(attrs, "State")
         })
     except Exception as e:
-        app.logger.error(f"KMIP get failed: {e}")
+        app.logger.error(f"KMIP get failed: {traceback.format_exc()}")
         return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route("/kmip/activate", methods=["POST"])
@@ -150,7 +207,7 @@ def activate_key():
             "state": "Active"
         })
     except Exception as e:
-        app.logger.error(f"KMIP activate failed: {e}")
+        app.logger.error(f"KMIP activate failed: {traceback.format_exc()}")
         return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route("/kmip/revoke", methods=["POST"])
@@ -179,7 +236,7 @@ def revoke_key():
             "state": "Revoked"
         })
     except Exception as e:
-        app.logger.error(f"KMIP revoke failed: {e}")
+        app.logger.error(f"KMIP revoke failed: {traceback.format_exc()}")
         return jsonify({"success": False, "error": str(e)}), 500
 
 # NOTE: No destroy/delete endpoints exist — by design.
