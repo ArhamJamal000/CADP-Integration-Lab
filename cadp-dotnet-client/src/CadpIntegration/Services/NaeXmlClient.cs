@@ -215,7 +215,8 @@ public class NaeXmlClient : INaeXmlClient
                 if (System.IO.File.Exists("/certs/Certificate (1).pem"))
                 {
                     var rootCa = X509Certificate2.CreateFromPemFile("/certs/Certificate (1).pem");
-                    chain.ChainPolicy.ExtraStore.Add(rootCa);
+                    chain.ChainPolicy.TrustMode = X509ChainTrustMode.CustomRootTrust;
+                    chain.ChainPolicy.CustomTrustStore.Add(rootCa);
                     chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
                     chain.ChainPolicy.VerificationFlags = X509VerificationFlags.AllowUnknownCertificateAuthority | X509VerificationFlags.IgnoreCertificateAuthorityRevocationUnknown | X509VerificationFlags.IgnoreEndRevocationUnknown;
                     bool isValid = chain.Build((X509Certificate2)certificate);

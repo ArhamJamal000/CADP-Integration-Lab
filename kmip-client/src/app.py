@@ -13,10 +13,10 @@ from flask import Flask, request, jsonify
 app = Flask(__name__)
 
 # KMIP connection settings from env
-KMIP_HOST = os.environ.get("KMIP_HOST", "")
-KMIP_PORT = int(os.environ.get("KMIP_PORT", 5696))
-KMIP_USERNAME = os.environ.get("KMIP_USERNAME", "").strip("\"'")
-KMIP_PASSWORD = os.environ.get("KMIP_PASSWORD", "").strip("\"'")
+KMIP_HOST = os.environ.get("KMIP_HOST", "").strip().strip("\"'")
+KMIP_PORT = int(os.environ.get("KMIP_PORT", "5696").strip().strip("\"'") or 5696)
+KMIP_USERNAME = os.environ.get("KMIP_USERNAME", "").strip().strip("\"'")
+KMIP_PASSWORD = os.environ.get("KMIP_PASSWORD", "").strip().strip("\"'")
 
 def get_kmip_client():
     if not KMIP_HOST:

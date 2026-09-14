@@ -285,10 +285,15 @@ app.Run();
 // Strongly typed settings
 public class CadpSettings
 {
-    public string CadpHost { get; set; } = "";
+    private string _cadpHost = "";
+    public string CadpHost { get => _cadpHost; set => _cadpHost = value?.Trim() ?? ""; }
     public int CadpPort { get; set; }
-    public string KmipHost { get; set; } = "";
+    
+    private string _kmipHost = "";
+    public string KmipHost { get => _kmipHost; set => _kmipHost = value?.Trim() ?? ""; }
     public int KmipPort { get; set; } = 5696;
-    public string NaeHost { get; set; } = "";
+    
+    private string _naeHost = "";
+    public string NaeHost { get => _naeHost; set => _naeHost = value?.Trim() ?? ""; }
     public int NaePort { get; set; } = 9000;
 }
