@@ -33,11 +33,18 @@ def get_kmip_client():
             cert="/certs/client.crt",
             key="/certs/client.key",
             ca="/certs/Certificate (1).pem",
-            username=KMIP_USERNAME,       # Pass literal string, even if empty
-            password=KMIP_PASSWORD,       # Pass literal string, even if empty
+            username=KMIP_USERNAME,       
+            password=KMIP_PASSWORD,       
             kmip_version=KMIPVersion.KMIP_1_4,
             ssl_version="PROTOCOL_TLSv1_2"
         )
+
+        # PyKMIP 0.10.0 ConfigHelper coerces "" to None, causing ValueError
+        # Bypass it by forcing the exact string into the underlying proxy object
+        if KMIP_USERNAME is not None:
+            client.proxy.username = KMIP_USERNAME
+        if KMIP_PASSWORD is not None:
+            client.proxy.password = KMIP_PASSWORD
 
         return client
 
