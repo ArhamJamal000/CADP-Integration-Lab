@@ -39,3 +39,10 @@
 **Decision:** Used `SslStream` with proper certificate validation callback. TODO markers for actual Thales protocol.
 **Alternatives considered:** Using HttpClient with HTTPS (NAE-XML uses raw TCP, not HTTP).
 **Tradeoffs accepted:** More complex socket management, but faithful to actual NAE-XML wire protocol.
+
+## [2026-09-14] Dashboard Button Handlers & Docker Networking Fix
+
+**Context:** Web dashboard "Test KMIP", "Test CADP", "Test NAE-XML", and "Run Smoke Test" buttons had no `onclick` handlers — clicking them did nothing. Docker Compose also lacked explicit networking.
+**Decision:** Wired all four buttons to call their respective API endpoints (`/api/kmip/locate`, `/api/encryption/string/encrypt`, `/api/nae/connect`, `/api/tests/run-positive`) with status display. Added explicit `cadp-net` bridge network and `depends_on` to `docker-compose.yml`.
+**Alternatives considered:** Replacing buttons with navigation links to individual pages — rejected to preserve quick-test dashboard UX.
+**Tradeoffs accepted:** Dashboard duplicates some functionality from dedicated pages, but provides faster one-click testing. See FLOW.md :: Dashboard Quick-Test Flow.

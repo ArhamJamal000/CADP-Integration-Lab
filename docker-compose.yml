@@ -1,10 +1,14 @@
 services:
   cadp-integration:
+    depends_on:
+      - kmip-client
     build:
       context: ./cadp-dotnet-client
     ports:
       - "${WEB_PORT:-8080}:8080"
     env_file: .env
+    networks:
+      - cadp-net
     volumes:
       - ./logs:/app/logs
       - ./test-vectors:/app/test-vectors
@@ -16,8 +20,14 @@ services:
     build:
       context: ./kmip-client
     env_file: .env
+    networks:
+      - cadp-net
     volumes:
       - "/home/arham-jamal/Desktop/Certificate (1).pem:/certs/Certificate (1).pem:ro"
       - "/home/arham-jamal/Desktop/client.crt:/certs/client.crt:ro"
       - "/home/arham-jamal/Desktop/client.key:/certs/client.key:ro"
+
+networks:
+  cadp-net:
+    driver: bridge
 

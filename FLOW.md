@@ -28,7 +28,21 @@ Entry point: Browser -> `_Layout.cshtml`
 3. Displays appropriate `.cshtml` placeholder or dashboard.
 4. If dashboard, executes fetch against `/health` to update UI dynamically.
 
-**Currently modifying:** Establishing placeholder views.
+**Currently modifying:** N/A — completed.
+
+## Flow: Dashboard Quick-Test
+
+Entry point: `Index.cshtml :: testKmip()` (or `testCadp()`, `testNae()`, `runSmoke()`)
+
+1. User clicks dashboard action button (e.g. "Test KMIP").
+2. JavaScript `fetch()` sends POST to corresponding API endpoint.
+3. `Program.cs` route handler invokes service (e.g. `KmipService.LocateKeysAsync()`).
+4. `KmipService` proxies HTTP POST to `http://kmip-client:5000/kmip/locate`.
+5. `app.py` executes PyKMIP operation against CipherTrust Manager.
+6. Response flows back: Flask → KmipService → Program.cs → browser JavaScript.
+7. Status and JSON result displayed in dashboard UI.
+
+**Currently modifying:** N/A — completed. See DECISIONS.md #Dashboard Button Handlers.
 
 ## Flow: String Encryption Request
 

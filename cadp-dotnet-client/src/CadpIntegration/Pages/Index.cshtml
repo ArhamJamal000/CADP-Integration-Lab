@@ -30,12 +30,101 @@
 
 <div class="card">
     <h3>Actions</h3>
-    <button class="btn">Test CADP</button>
-    <button class="btn">Test KMIP</button>
-    <button class="btn">Test NAE-XML</button>
-    <button class="btn">Run Smoke Test</button>
-    <p style="margin-top: 10px; font-size: 0.9em; color: gray;">Status: Ready.</p>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
+        <button class="btn" id="btnCadp" onclick="testCadp()">Test CADP</button>
+        <button class="btn" id="btnKmip" onclick="testKmip()">Test KMIP</button>
+        <button class="btn" id="btnNae" onclick="testNae()">Test NAE-XML</button>
+        <button class="btn" id="btnSmoke" style="background:#2ecc71;" onclick="runSmoke()">Run Smoke Test</button>
+    </div>
+    <div id="actionStatus" style="padding: 8px 12px; border-radius: 4px; margin-bottom: 8px; font-weight: bold; color: gray;">Status: Ready.</div>
+    <pre id="actionResult" style="background: #ecf0f1; padding: 16px; min-height: 40px; white-space: pre-wrap; border-radius: 4px; display: none;"></pre>
 </div>
+
+<script>
+function setStatus(msg, color) {
+    const el = document.getElementById('actionStatus');
+    el.textContent = msg;
+    el.style.color = 'white';
+    el.style.background = color;
+}
+
+function showResult(data) {
+    const el = document.getElementById('actionResult');
+    el.style.display = 'block';
+    el.textContent = JSON.stringify(data, null, 2);
+}
+
+function resetStatus() {
+    const el = document.getElementById('actionStatus');
+    el.textContent = 'Status: Ready.';
+    el.style.color = 'gray';
+    el.style.background = 'transparent';
+    document.getElementById('actionResult').style.display = 'none';
+}
+
+async function testCadp() {
+    setStatus('Testing CADP Encryption...', '#f39c12');
+    try {
+        const res = await fetch('/api/encryption/string/encrypt', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ plaintext: 'CADP-connectivity-test', keyId: 'test-key', algorithm: 'AES' })
+        });
+        const data = await res.json();
+        setStatus(data.success ? 'CADP: Connected' : 'CADP: ' + (data.error || 'Failed'), data.success ? '#27ae60' : '#e74c3c');
+        showResult(data);
+    } catch (e) {
+        setStatus('CADP: Connection Error', '#e74c3c');
+        showResult({ error: e.message });
+    }
+}
+
+async function testKmip() {
+    setStatus('Testing KMIP Connection...', '#f39c12');
+    try {
+        const res = await fetch('/api/kmip/locate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({})
+        });
+        const data = await res.json();
+        const keyCount = data.keys ? data.keys.length : 0;
+        setStatus(data.success ? `KMIP: Connected (${keyCount} keys found)` : 'KMIP: ' + (data.error || 'Failed'), data.success ? '#27ae60' : '#e74c3c');
+        showResult(data);
+    } catch (e) {
+        setStatus('KMIP: Connection Error', '#e74c3c');
+        showResult({ error: e.message });
+    }
+}
+
+async function testNae() {
+    setStatus('Testing NAE-XML Connection...', '#f39c12');
+    try {
+        const res = await fetch('/api/nae/connect', { method: 'POST' });
+        const data = await res.json();
+        setStatus(data.success ? 'NAE-XML: Connected' : 'NAE-XML: ' + (data.error || 'Failed'), data.success ? '#27ae60' : '#e74c3c');
+        showResult(data);
+    } catch (e) {
+        setStatus('NAE-XML: Connection Error', '#e74c3c');
+        showResult({ error: e.message });
+    }
+}
+
+async function runSmoke() {
+    setStatus('Running Smoke Tests...', '#f39c12');
+    try {
+        const res = await fetch('/api/tests/run-positive', { method: 'POST' });
+        const data = await res.json();
+        const passed = data.results ? data.results.filter(r => r.passed).length : 0;
+        const total = data.results ? data.results.length : 0;
+        setStatus(`Smoke Test: ${passed}/${total} passed`, data.success ? '#27ae60' : '#e74c3c');
+        showResult(data);
+    } catch (e) {
+        setStatus('Smoke Test: Error', '#e74c3c');
+        showResult({ error: e.message });
+    }
+}
+</script>
 
 @functions {
     public class IndexModel : Microsoft.AspNetCore.Mvc.RazorPages.PageModel
