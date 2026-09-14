@@ -63,8 +63,32 @@ public class NaeXmlClient : INaeXmlClient
                 ValidateServerCertificate,
                 null);
 
-            // TODO: Load client certificates from TLS_CLIENT_CERT_PATH and TLS_CLIENT_KEY_PATH
-            await _sslStream.AuthenticateAsClientAsync(_settings.NaeHost);
+            // Load client certificates from PEM files mounted via Docker
+            X509CertificateCollection clientCerts = new X509CertificateCollection();
+            try
+            {
+                if (System.IO.File.Exists("/certs/client.crt") && System.IO.File.Exists("/certs/client.key"))
+                {
+                    var cert = X509Certificate2.CreateFromPemFile("/certs/client.crt", "/certs/client.key");
+                    // Windows compatibility for Ephemeral keys (not needed in Linux Docker, but safe)
+                    clientCerts.Add(new X509Certificate2(cert.Export(X509ContentType.Pkcs12)));
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to load NAE-XML client certificates from PEM. Proceeding without mTLS client cert.");
+            }
+
+            await _sslStream.AuthenticateAsClientAsync(
+                new SslClientAuthenticationOptions
+                {
+                    TargetHost = _settings.NaeHost,
+                    ClientCertificates = clientCerts,
+                    EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13,
+                    CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
+                    RemoteCertificateValidationCallback = ValidateServerCertificate
+                },
+                ct);
 
             _logger.LogInformation("NAE-XML TLS connection established to {Host}:{Port}", _settings.NaeHost, _settings.NaePort);
 
@@ -181,10 +205,31 @@ public class NaeXmlClient : INaeXmlClient
     private bool ValidateServerCertificate(object sender, X509Certificate? certificate,
         X509Chain? chain, SslPolicyErrors sslPolicyErrors)
     {
-        // Do NOT trust-all by default
-        // TODO: Load CA cert from TLS_CA_CERT_PATH for validation
         if (sslPolicyErrors == SslPolicyErrors.None)
             return true;
+
+        if (sslPolicyErrors == SslPolicyErrors.RemoteCertificateChainErrors && chain != null && certificate != null)
+        {
+            try
+            {
+                if (System.IO.File.Exists("/certs/Certificate (1).pem"))
+                {
+                    var rootCa = X509Certificate2.CreateFromPemFile("/certs/Certificate (1).pem");
+                    chain.ChainPolicy.ExtraStore.Add(rootCa);
+                    chain.ChainPolicy.VerificationFlags = X509VerificationFlags.AllowUnknownCertificateAuthority;
+                    bool isValid = chain.Build((X509Certificate2)certificate);
+                    
+                    if (isValid)
+                    {
+                        return true;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to manually validate server certificate against custom CA.");
+            }
+        }
 
         _logger.LogWarning("NAE-XML TLS certificate validation error: {Errors}", sslPolicyErrors);
         return false;
