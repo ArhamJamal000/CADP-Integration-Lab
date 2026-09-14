@@ -15,8 +15,8 @@ app = Flask(__name__)
 # KMIP connection settings from env
 KMIP_HOST = os.environ.get("KMIP_HOST", "")
 KMIP_PORT = int(os.environ.get("KMIP_PORT", 5696))
-KMIP_USERNAME = os.environ.get("KMIP_USERNAME", "")
-KMIP_PASSWORD = os.environ.get("KMIP_PASSWORD", "")
+KMIP_USERNAME = os.environ.get("KMIP_USERNAME", "").strip("\"'")
+KMIP_PASSWORD = os.environ.get("KMIP_PASSWORD", "").strip("\"'")
 
 def get_kmip_client():
     if not KMIP_HOST:
