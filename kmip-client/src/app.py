@@ -16,7 +16,8 @@ app = Flask(__name__)
 KMIP_HOST = os.environ.get("KMIP_HOST", "").strip().strip("\"'")
 KMIP_PORT = int(os.environ.get("KMIP_PORT", "5696").strip().strip("\"'") or 5696)
 KMIP_USERNAME = os.environ.get("KMIP_USERNAME", "").strip().strip("\"'")
-KMIP_PASSWORD = os.environ.get("KMIP_PASSWORD", "").strip().strip("\"'")
+raw_kmip_pass = os.environ.get("KMIP_PASSWORD", "").strip().strip("\"'")
+KMIP_PASSWORD = raw_kmip_pass if raw_kmip_pass != "" else os.environ.get("NAE_PASSWORD", "").strip().strip("\"'")
 
 def get_kmip_client():
     if not KMIP_HOST:
