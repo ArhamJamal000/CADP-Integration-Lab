@@ -17,6 +17,11 @@ def get_kmip_client():
 
     try:
         from kmip.pie.client import ProxyKmipClient
+        from kmip.core.enums import KMIPVersion
+
+        # Only use credentials if BOTH are provided
+        actual_username = KMIP_USERNAME if KMIP_USERNAME and KMIP_PASSWORD else None
+        actual_password = KMIP_PASSWORD if KMIP_USERNAME and KMIP_PASSWORD else None
 
         client = ProxyKmipClient(
             hostname=KMIP_HOST,
@@ -24,8 +29,9 @@ def get_kmip_client():
             cert="/certs/client.crt",
             key="/certs/client.key",
             ca="/certs/Certificate (1).pem",
-            username=KMIP_USERNAME if KMIP_USERNAME and KMIP_PASSWORD else None,
-            password=KMIP_PASSWORD if KMIP_USERNAME and KMIP_PASSWORD else None
+            username=actual_username,
+            password=actual_password,
+            kmip_version=KMIPVersion.KMIP_1_4
         )
 
         return client
