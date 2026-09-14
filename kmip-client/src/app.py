@@ -24,8 +24,8 @@ def get_kmip_client():
             cert="/certs/client.crt",
             key="/certs/client.key",
             ca="/certs/Certificate (1).pem",
-            username=KMIP_USERNAME or None,
-            password=KMIP_PASSWORD or None
+            username=KMIP_USERNAME if KMIP_USERNAME and KMIP_PASSWORD else None,
+            password=KMIP_PASSWORD if KMIP_USERNAME and KMIP_PASSWORD else None
         )
 
         return client
