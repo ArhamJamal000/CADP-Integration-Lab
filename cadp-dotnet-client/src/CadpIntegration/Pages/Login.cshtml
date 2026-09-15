@@ -1,0 +1,35 @@
+@page
+@model CadpIntegration.Pages.LoginModel
+@{
+    ViewData["Title"] = "Login";
+}
+
+<div style="display: flex; justify-content: center; align-items: center; min-height: 70vh;">
+    <div class="card" style="width: 100%; max-width: 450px; padding: 3rem 2.5rem; margin: 0;">
+        <span class="eyebrow" style="text-align: center; display: block; margin-bottom: 0.75rem;">SECURE ACCESS</span>
+        <h2 style="text-align: center; margin-bottom: 2rem;">Authentication</h2>
+        
+        <form method="post">
+            <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                <div>
+                    <label style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); display: block; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.1em;">Username</label>
+                    <input type="text" name="Username" style="width: 100%; padding: 14px; box-sizing: border-box;" placeholder="Enter your username" required />
+                </div>
+                
+                <div>
+                    <label style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); display: block; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.1em;">Password</label>
+                    <input type="password" name="Password" style="width: 100%; padding: 14px; box-sizing: border-box;" placeholder="Enter your password" required />
+                </div>
+                
+                <button type="submit" class="btn" style="width: 100%; margin-top: 1rem; padding: 16px;">Sign In</button>
+            </div>
+            
+            @if (ModelState.ErrorCount > 0)
+            {
+                <div style="margin-top: 1.5rem; background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; padding: 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    Invalid credentials. Please try again.
+                </div>
+            }
+        </form>
+    </div>
+</div>

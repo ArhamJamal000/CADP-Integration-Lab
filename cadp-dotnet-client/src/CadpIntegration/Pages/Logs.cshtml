@@ -25,9 +25,9 @@ async function fetchLogs() {
     try {
         const res = await fetch('/api/logs');
         const lines = await res.json();
-        currentLogs = lines;
+        currentLogs = lines.reverse();
         if (lines.length > 0) {
-            out.textContent = lines.join('\n');
+            out.textContent = currentLogs.join('\n');
         } else {
             out.textContent = 'No logs available. Execute some operations first.';
         }
