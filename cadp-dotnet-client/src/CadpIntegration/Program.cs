@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using System.Text.Json.Serialization;
 using Serilog;
 using Serilog.Events;
 using CadpIntegration.Services;
@@ -48,7 +50,22 @@ builder.Services.Configure<CadpSettings>(options =>
         ? naePort
         : 9000;
 });
-builder.Services.AddRazorPages();
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Login";
+    });
+
+builder.Services.AddRazorPages(options =>
+{
+    options.Conventions.AuthorizeFolder("/");
+    options.Conventions.AllowAnonymousToPage("/Login");
+});
+
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+});
 builder.Services.AddSingleton<IEncryptionService, CadpEncryptionService>();
 builder.Services.AddHttpClient<IKmipService, KmipService>();
 builder.Services.AddSingleton<INaeXmlClient, NaeXmlClient>();
@@ -84,6 +101,9 @@ app.Use(async (context, next) =>
         }
     }
 });
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapRazorPages();
 

@@ -1,5 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using System.Security.Claims;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace CadpIntegration.Pages
 {
@@ -15,11 +20,14 @@ namespace CadpIntegration.Pages
         {
         }
 
-        public IActionResult OnPost()
+        public async Task<IActionResult> OnPostAsync()
         {
             if (Username == "admin" && Password == "admin")
             {
-                // Basic mock redirect
+                var claims = new List<Claim> { new Claim(ClaimTypes.Name, Username) };
+                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+                
                 return RedirectToPage("/Index");
             }
             
