@@ -4,49 +4,71 @@
     ViewData["Title"] = "Dashboard";
 }
 
-<div class="card">
-    <span class="eyebrow">00 OVERVIEW</span>
-    <h2>Dashboard</h2>
-    <p class="supporting-text">CADP Integration Lab is running.</p>
-</div>
-
-<div class="card">
-    <h3>Health Status</h3>
-    <ul id="health-data">
-        <li>Loading health data...</li>
-    </ul>
-    <script>
-        fetch('/health')
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById('health-data').innerHTML = `
-                    <li><strong>Application:</strong> ${data.application}</li>
-                    <li><strong>KMIP:</strong> ${data.kmip}</li>
-                    <li><strong>NAE-XML:</strong> ${data.naeXml}</li>
-                    <li><strong>CADP:</strong> ${data.cadp}</li>
-                `;
-            });
-    </script>
-</div>
-
-<div class="card">
-    <h3>Actions</h3>
-    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
-        <button class="btn" id="btnCadp" onclick="testCadp()">Test CADP</button>
-        <button class="btn" id="btnKmip" onclick="testKmip()">Test KMIP</button>
-        <button class="btn" id="btnNae" onclick="testNae()">Test NAE-XML</button>
-        <button class="btn" id="btnSmoke" style="background:#2ecc71;" onclick="runSmoke()">Run Smoke Test</button>
+<div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 2rem; align-items: start;">
+    <!-- Left Column: Overview and Tools -->
+    <div style="display: flex; flex-direction: column; gap: 2rem;">
+        <div class="card" style="margin-bottom: 0;">
+            <span class="eyebrow">00 OVERVIEW</span>
+            <h2>Dashboard</h2>
+            <p class="supporting-text" style="margin-bottom: 0;">Welcome to the CADP Integration Lab.</p>
+        </div>
+        
+        <div class="card" style="margin-bottom: 0;">
+            <h3>Quick Actions</h3>
+            <p class="supporting-text" style="font-size: 0.95rem; margin-bottom: 1.5rem;">Jump straight into encryption operations or cryptographic key management.</p>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <a href="/StringEncryption" class="btn" style="background:#0f172a; color:#fff; box-shadow:0 4px 10px rgba(0,0,0,0.1);">String Encryption</a>
+                <a href="/FileEncryption" class="btn" style="background:#0f172a; color:#fff; box-shadow:0 4px 10px rgba(0,0,0,0.1);">File Encryption</a>
+                <a href="/KmipKeyManagement" class="btn" style="background:#e2e8f0; color:#0f172a; border:1px solid rgba(0,0,0,0.1); box-shadow:none;">Key Management</a>
+            </div>
+        </div>
     </div>
-    <div id="actionStatus" style="padding: 8px 12px; border-radius: 4px; margin-bottom: 8px; font-weight: bold; color: gray;">Status: Ready.</div>
-    <div id="actionResult" style="padding: 16px 0; min-height: 40px; display: none;"></div>
+
+    <!-- Right Column: Status and Tests -->
+    <div style="display: flex; flex-direction: column; gap: 2rem;">
+        <div class="card" style="margin-bottom: 0;">
+            <h3>Platform Health</h3>
+            <ul id="health-data" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.75rem;">
+                <li style="padding: 1rem; background: var(--bg-surface-alt); border-radius: 6px; font-weight:600;">Loading health data...</li>
+            </ul>
+        </div>
+        
+        <div class="card" style="margin-bottom: 0;">
+            <h3>Diagnostics</h3>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 1.5rem;">
+                <button class="btn" style="font-size: 0.75rem; padding: 12px 20px;" onclick="testCadp()">Test CADP</button>
+                <button class="btn" style="font-size: 0.75rem; padding: 12px 20px;" onclick="testKmip()">Test KMIP</button>
+                <button class="btn" style="font-size: 0.75rem; padding: 12px 20px;" onclick="testNae()">Test NAE</button>
+                <button class="btn" style="font-size: 0.75rem; padding: 12px 20px; background: #16a34a;" onclick="runSmoke()">Smoke Test</button>
+            </div>
+            <div id="actionStatus" style="padding: 12px; border-radius: 6px; margin-bottom: 12px; font-weight: bold; color: var(--text-muted); font-size: 0.85rem; background: var(--bg-surface-alt); border: 1px solid rgba(0,0,0,0.05);">Status: Ready.</div>
+            <div id="actionResult" style="padding: 8px 0; display: none;"></div>
+        </div>
+    </div>
 </div>
 
 <script>
-function setStatus(msg, color) {
+fetch('/health')
+    .then(res => res.json())
+    .then(data => {
+        const renderBadge = (status) => status === 'UP' || status === 'CONFIGURED' 
+            ? `<span style="background:#dcfce7; color:#166534; padding:3px 10px; border-radius:12px; font-size:0.7rem; font-weight:700;">${status}</span>`
+            : `<span style="background:#fee2e2; color:#991b1b; padding:3px 10px; border-radius:12px; font-size:0.7rem; font-weight:700;">${status}</span>`;
+            
+        document.getElementById('health-data').innerHTML = `
+            <li style="padding:0.75rem 1rem; background:var(--bg-surface); border-radius:8px; display:flex; justify-content:space-between; align-items:center; border:1px solid rgba(0,0,0,0.08); box-shadow:0 1px 3px rgba(0,0,0,0.02)"><strong>Application</strong> ${renderBadge(data.application)}</li>
+            <li style="padding:0.75rem 1rem; background:var(--bg-surface); border-radius:8px; display:flex; justify-content:space-between; align-items:center; border:1px solid rgba(0,0,0,0.08); box-shadow:0 1px 3px rgba(0,0,0,0.02)"><strong>KMIP Link</strong> ${renderBadge(data.kmip)}</li>
+            <li style="padding:0.75rem 1rem; background:var(--bg-surface); border-radius:8px; display:flex; justify-content:space-between; align-items:center; border:1px solid rgba(0,0,0,0.08); box-shadow:0 1px 3px rgba(0,0,0,0.02)"><strong>NAE-XML Auth</strong> ${renderBadge(data.naeXml)}</li>
+            <li style="padding:0.75rem 1rem; background:var(--bg-surface); border-radius:8px; display:flex; justify-content:space-between; align-items:center; border:1px solid rgba(0,0,0,0.08); box-shadow:0 1px 3px rgba(0,0,0,0.02)"><strong>CADP Tunnel</strong> ${renderBadge(data.cadp)}</li>
+        `;
+    });
+
+function setStatus(msg, color, bgColor) {
     const el = document.getElementById('actionStatus');
     el.textContent = msg;
-    el.style.color = 'white';
-    el.style.background = color;
+    el.style.color = color;
+    el.style.background = bgColor;
+    el.style.border = `1px solid ${color}40`;
 }
 
 function showResult(data) {
@@ -58,13 +80,14 @@ function showResult(data) {
 function resetStatus() {
     const el = document.getElementById('actionStatus');
     el.textContent = 'Status: Ready.';
-    el.style.color = 'gray';
-    el.style.background = 'transparent';
+    el.style.color = 'var(--text-muted)';
+    el.style.background = 'var(--bg-surface-alt)';
+    el.style.border = '1px solid rgba(0,0,0,0.05)';
     document.getElementById('actionResult').style.display = 'none';
 }
 
 async function testCadp() {
-    setStatus('Testing CADP Encryption...', '#f39c12');
+    setStatus('Testing CADP Encryption...', '#b45309', '#fef3c7');
     try {
         const res = await fetch('/api/encryption/string/encrypt', {
             method: 'POST',
@@ -72,16 +95,16 @@ async function testCadp() {
             body: JSON.stringify({ plaintext: 'CADP-connectivity-test', keyId: 'test-key', algorithm: 'AES' })
         });
         const data = await res.json();
-        setStatus(data.success ? 'CADP: Connected' : 'CADP: ' + (data.error || 'Failed'), data.success ? '#27ae60' : '#e74c3c');
+        setStatus(data.success ? 'CADP: Connected' : 'CADP: ' + (data.error || 'Failed'), data.success ? '#166534' : '#991b1b', data.success ? '#dcfce7' : '#fee2e2');
         showResult(data);
     } catch (e) {
-        setStatus('CADP: Connection Error', '#e74c3c');
+        setStatus('CADP: Connection Error', '#991b1b', '#fee2e2');
         showResult({ error: e.message });
     }
 }
 
 async function testKmip() {
-    setStatus('Testing KMIP Connection...', '#f39c12');
+    setStatus('Testing KMIP Connection...', '#b45309', '#fef3c7');
     try {
         const res = await fetch('/api/kmip/test', {
             method: 'POST',
@@ -89,38 +112,38 @@ async function testKmip() {
             body: JSON.stringify({})
         });
         const data = await res.json();
-        setStatus(data.success ? 'KMIP: Connected' : 'KMIP: ' + (data.error || 'Failed'), data.success ? '#27ae60' : '#e74c3c');
+        setStatus(data.success ? 'KMIP: Connected' : 'KMIP: ' + (data.error || 'Failed'), data.success ? '#166534' : '#991b1b', data.success ? '#dcfce7' : '#fee2e2');
         showResult(data);
     } catch (e) {
-        setStatus('KMIP: Connection Error', '#e74c3c');
+        setStatus('KMIP: Connection Error', '#991b1b', '#fee2e2');
         showResult({ error: e.message });
     }
 }
 
 async function testNae() {
-    setStatus('Testing NAE-XML Connection...', '#f39c12');
+    setStatus('Testing NAE-XML Connection...', '#b45309', '#fef3c7');
     try {
         const res = await fetch('/api/nae/connect', { method: 'POST' });
         const data = await res.json();
-        setStatus(data.success ? 'NAE-XML: Connected' : 'NAE-XML: ' + (data.error || 'Failed'), data.success ? '#27ae60' : '#e74c3c');
+        setStatus(data.success ? 'NAE-XML: Connected' : 'NAE-XML: ' + (data.error || 'Failed'), data.success ? '#166534' : '#991b1b', data.success ? '#dcfce7' : '#fee2e2');
         showResult(data);
     } catch (e) {
-        setStatus('NAE-XML: Connection Error', '#e74c3c');
+        setStatus('NAE-XML: Connection Error', '#991b1b', '#fee2e2');
         showResult({ error: e.message });
     }
 }
 
 async function runSmoke() {
-    setStatus('Running Smoke Tests...', '#f39c12');
+    setStatus('Running Smoke Tests...', '#b45309', '#fef3c7');
     try {
         const res = await fetch('/api/tests/run-positive', { method: 'POST' });
         const data = await res.json();
         const passed = data.results ? data.results.filter(r => r.passed).length : 0;
         const total = data.results ? data.results.length : 0;
-        setStatus(`Smoke Test: ${passed}/${total} passed`, data.success ? '#27ae60' : '#e74c3c');
+        setStatus(`Smoke Test: ${passed}/${total} passed`, data.success ? '#166534' : '#991b1b', data.success ? '#dcfce7' : '#fee2e2');
         showResult(data);
     } catch (e) {
-        setStatus('Smoke Test: Error', '#e74c3c');
+        setStatus('Smoke Test: Error', '#991b1b', '#fee2e2');
         showResult({ error: e.message });
     }
 }
