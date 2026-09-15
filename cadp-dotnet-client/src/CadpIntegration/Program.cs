@@ -176,6 +176,14 @@ app.MapPost("/api/encryption/file/decrypt", async (HttpContext ctx, IEncryptionS
     return Results.Ok(result);
 });
 
+app.MapGet("/api/encryption/file/download/{filename}", (string filename) =>
+{
+    var safeFilename = Path.GetFileName(filename); // Prevent path traversal
+    var path = Path.Combine(Path.GetTempPath(), safeFilename);
+    if (!File.Exists(path)) return Results.NotFound("File not found or expired.");
+    return Results.File(path, "application/octet-stream", safeFilename);
+});
+
 // ═══════════════════════════════════════════════════════════
 // Phase 6 — KMIP API
 // ═══════════════════════════════════════════════════════════

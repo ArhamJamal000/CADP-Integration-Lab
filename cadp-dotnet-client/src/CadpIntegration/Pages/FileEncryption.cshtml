@@ -57,10 +57,18 @@ async function doFileOp(action) {
     try {
         const res = await fetch(`/api/encryption/file/${action}`, { method: 'POST', body: formData });
         const data = await res.json();
+        
+        let downloadHtml = '';
+        if (data.outputFileName) {
+            downloadHtml = `<a href="/api/encryption/file/download/${data.outputFileName}" target="_blank" class="btn" style="background:#3498db; margin-left:8px; display:inline-block; text-decoration:none; vertical-align:middle;">Download Output File</a>`;
+        }
+
         if (data.success) {
-            statusEl.style.background = '#27ae60'; statusEl.textContent = `Success — ${data.bytesProcessed} bytes processed`;
+            statusEl.style.background = '#27ae60'; 
+            statusEl.innerHTML = `Success — ${data.bytesProcessed} bytes processed ${downloadHtml}`;
         } else {
-            statusEl.style.background = '#e74c3c'; statusEl.textContent = 'Failure';
+            statusEl.style.background = '#e74c3c'; 
+            statusEl.innerHTML = 'Failure';
         }
         resultEl.textContent = JSON.stringify(data, null, 2);
     } catch(e) {
