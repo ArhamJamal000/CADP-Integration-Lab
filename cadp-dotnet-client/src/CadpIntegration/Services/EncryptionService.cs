@@ -1,4 +1,5 @@
 using CadpIntegration.Models;
+using System.Security.Cryptography;
 
 namespace CadpIntegration.Services;
 
@@ -132,7 +133,14 @@ public class CadpEncryptionService : IEncryptionService
         {
             var header = System.Text.Encoding.UTF8.GetBytes("[CADP-ENCRYPTED-MOCK]\n");
             output.Write(header, 0, header.Length);
-            input.CopyTo(output);
+
+            using var aes = Aes.Create();
+            aes.Key = new byte[32]; // Mock static key
+            aes.IV = new byte[16];  // Mock static IV
+            using var cryptoStream = new CryptoStream(output, aes.CreateEncryptor(), CryptoStreamMode.Write, leaveOpen: true);
+            input.CopyTo(cryptoStream);
+            cryptoStream.FlushFinalBlock();
+
             return Task.FromResult(new FileEncryptionResult
             {
                 Success = true,
@@ -166,8 +174,26 @@ public class CadpEncryptionService : IEncryptionService
         _logger.LogInformation("Simulating CADP File Decryption for demonstration UI.");
         try
         {
-            // Just blind copy for demo if they try to decrypt it back
-            input.CopyTo(output);
+            var headerBuf = new byte[22];
+            var bytesRead = input.Read(headerBuf, 0, 22);
+            var headerStr = System.Text.Encoding.UTF8.GetString(headerBuf, 0, bytesRead);
+
+            Stream dataStream = input;
+            if (headerStr == "[CADP-ENCRYPTED-MOCK]\n")
+            {
+                using var aes = Aes.Create();
+                aes.Key = new byte[32];
+                aes.IV = new byte[16];
+                using var cryptoStream = new CryptoStream(input, aes.CreateDecryptor(), CryptoStreamMode.Read, leaveOpen: true);
+                cryptoStream.CopyTo(output);
+            }
+            else
+            {
+                // Unrecognized mock file, just copy it back or return error
+                input.Position = 0;
+                input.CopyTo(output);
+            }
+
             return Task.FromResult(new FileEncryptionResult
             {
                 Success = true,
