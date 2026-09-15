@@ -253,6 +253,47 @@
             box-shadow: 0 0 0 2px rgba(225, 1, 25, 0.1);
         }
 
+        /* Fancy Result UI */
+        .fancy-result {
+            background: #ffffff;
+            border: 1px solid rgba(0,0,0,0.06);
+            border-radius: 8px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+            margin-top: 1rem;
+        }
+        .fancy-row {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            border-bottom: 1px dashed rgba(0,0,0,0.08);
+            padding-bottom: 1rem;
+        }
+        .fancy-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .fancy-key {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-muted);
+            font-weight: 800;
+        }
+        .fancy-val {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            word-break: break-all;
+            background: var(--bg-surface-alt);
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+
         /* Layout footer */
         .site-footer {
             background: #ffffff;
@@ -365,5 +406,28 @@
             </div>
         </div>
     </footer>
+    <script>
+        function renderBeautifulResult(data) {
+            if (!data) return '';
+            let html = '<div class="fancy-result">';
+            let hasKeys = false;
+            for (const [key, value] of Object.entries(data)) {
+                if (key === 'success' || key === 'error') continue;
+                
+                let displayVal = value;
+                if (typeof value === 'object' && value !== null) {
+                    displayVal = JSON.stringify(value, null, 2);
+                }
+                
+                html += `<div class="fancy-row">
+                            <span class="fancy-key">${key}</span>
+                            <span class="fancy-val">${displayVal !== null && displayVal !== '' ? displayVal : '<em>null</em>'}</span>
+                         </div>`;
+                hasKeys = true;
+            }
+            html += '</div>';
+            return hasKeys ? html : '';
+        }
+    </script>
 </body>
 </html>

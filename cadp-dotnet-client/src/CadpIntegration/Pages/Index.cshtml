@@ -38,7 +38,7 @@
         <button class="btn" id="btnSmoke" style="background:#2ecc71;" onclick="runSmoke()">Run Smoke Test</button>
     </div>
     <div id="actionStatus" style="padding: 8px 12px; border-radius: 4px; margin-bottom: 8px; font-weight: bold; color: gray;">Status: Ready.</div>
-    <pre id="actionResult" style="background: #ecf0f1; padding: 16px; min-height: 40px; white-space: pre-wrap; border-radius: 4px; display: none;"></pre>
+    <div id="actionResult" style="padding: 16px 0; min-height: 40px; display: none;"></div>
 </div>
 
 <script>
@@ -52,7 +52,7 @@ function setStatus(msg, color) {
 function showResult(data) {
     const el = document.getElementById('actionResult');
     el.style.display = 'block';
-    el.textContent = JSON.stringify(data, null, 2);
+    el.innerHTML = renderBeautifulResult(data) || (data.error ? data.error : 'No data');
 }
 
 function resetStatus() {

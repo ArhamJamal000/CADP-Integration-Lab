@@ -40,7 +40,7 @@
 <div class="card">
     <h3>Request / Response</h3>
     <div id="naeStatus" style="padding:8px; display:none;"></div>
-    <pre id="naeResult" style="background:#ecf0f1; padding:16px; min-height:60px; white-space:pre-wrap;"></pre>
+    <div id="naeResult" style="padding:16px 0; min-height:60px;"></div>
 </div>
 
 <script>
@@ -59,7 +59,7 @@ async function naeConnect() {
             connEl.style.background = '#e74c3c'; connEl.textContent = 'Disconnected';
             statusEl.style.background = '#e74c3c'; statusEl.textContent = 'Connection Failed';
         }
-        document.getElementById('naeResult').textContent = JSON.stringify(data, null, 2);
+        document.getElementById('naeResult').innerHTML = renderBeautifulResult(data);
     } catch(e) {
         statusEl.style.background = '#e74c3c'; statusEl.textContent = 'Error';
         document.getElementById('naeResult').textContent = 'Error: ' + e.message;
@@ -88,7 +88,7 @@ async function naeSendRequest() {
         const data = await res.json();
         statusEl.style.background = data.success ? '#27ae60' : '#e74c3c';
         statusEl.textContent = data.success ? 'Success' : 'Failure';
-        document.getElementById('naeResult').textContent = JSON.stringify(data, null, 2);
+        document.getElementById('naeResult').innerHTML = renderBeautifulResult(data);
     } catch(e) {
         statusEl.style.background = '#e74c3c'; statusEl.textContent = 'Error';
         document.getElementById('naeResult').textContent = 'Error: ' + e.message;

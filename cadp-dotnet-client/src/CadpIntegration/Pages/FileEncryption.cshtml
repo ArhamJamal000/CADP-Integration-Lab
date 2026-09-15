@@ -30,7 +30,7 @@
         <div id="fileStatus" style="padding:8px; display:none;"></div>
         <div>
             <label><strong>Result:</strong></label>
-            <pre id="fileResult" style="background:#ecf0f1; padding:16px; min-height:60px; white-space:pre-wrap;"></pre>
+            <div id="fileResult" style="padding:16px 0; min-height:60px;"></div>
         </div>
     </div>
 </div>
@@ -71,7 +71,7 @@ async function doFileOp(action) {
             statusEl.style.background = '#e74c3c'; 
             statusEl.innerHTML = 'Failure';
         }
-        resultEl.textContent = JSON.stringify(data, null, 2);
+        resultEl.innerHTML = renderBeautifulResult(data);
     } catch(e) {
         statusEl.style.background = '#e74c3c'; statusEl.textContent = 'Failure';
         resultEl.textContent = 'Error: ' + e.message;

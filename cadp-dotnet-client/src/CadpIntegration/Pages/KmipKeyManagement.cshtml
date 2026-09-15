@@ -34,7 +34,7 @@
 <div class="card">
     <h3>Operation Result</h3>
     <div id="kmipStatus" style="padding:8px; display:none;"></div>
-    <pre id="kmipResult" style="background:#ecf0f1; padding:16px; min-height:40px; white-space:pre-wrap;"></pre>
+    <div id="kmipResult" style="padding:16px 0; min-height:40px;"></div>
 </div>
 
 <script>
@@ -45,7 +45,7 @@ function showResult(data, isSuccess) {
     s.style.background = isSuccess ? '#27ae60' : '#e74c3c';
     s.style.color = 'white';
     s.textContent = isSuccess ? 'Success' : 'Failure';
-    r.textContent = JSON.stringify(data, null, 2);
+    r.innerHTML = data.error ? data.error : renderBeautifulResult(data);
 }
 
 async function createKey() {

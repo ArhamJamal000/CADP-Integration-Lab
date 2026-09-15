@@ -60,3 +60,10 @@
 **Decision:** Updated the `:root` variables in `_Layout.cshtml` to an off-white `slate` (`#f8fafc`) base with pure white elevated surfaces, soft drop-shadows (`box-shadow`), and glassmorphism in the top navigation. Table headers and form inputs were inverted for light-mode visibility.
 **Alternatives considered:** Modifying the dark theme to make it less dark.
 **Tradeoffs accepted:** Deviates from the strict original credots.com dark aesthetic to fulfill the request for a customized brighter, enhanced premium aesthetic.
+
+## [2026-09-15] JSON Output Beautification
+
+**Context:** The API responses were being displayed as raw JSON strings in `<pre>` tags, which broke the premium aesthetic.
+**Decision:** Implemented a global JS utility `renderBeautifulResult` within `_Layout.cshtml` to dynamically parse and render JSON objects into styled HTML key-value rows (`.fancy-result`), removing `JSON.stringify` logic across the Razor pages.
+**Alternatives considered:** Using a third-party JSON viewing library.
+**Tradeoffs accepted:** The custom JS function is lightweight but might lack advanced rendering features (like collapsible nodes) found in heavy libraries.

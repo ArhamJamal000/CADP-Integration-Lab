@@ -31,7 +31,7 @@
         <div id="statusIndicator" style="padding:8px; display:none;"></div>
         <div>
             <label><strong>Result:</strong></label>
-            <pre id="resultArea" style="background:#ecf0f1; padding:16px; min-height:60px; white-space:pre-wrap; word-break:break-all;"></pre>
+            <div id="resultArea"></div>
         </div>
     </div>
 </div>
@@ -56,7 +56,7 @@ async function doStringOp(action) {
         } else {
             statusEl.style.background = '#e74c3c'; statusEl.textContent = 'Failure';
         }
-        resultEl.textContent = JSON.stringify(data, null, 2);
+        resultEl.innerHTML = renderBeautifulResult(data);
     } catch(e) {
         statusEl.style.background = '#e74c3c'; statusEl.textContent = 'Failure';
         resultEl.textContent = 'Error: ' + e.message;
