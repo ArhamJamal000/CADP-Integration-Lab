@@ -107,7 +107,7 @@ def test_connection():
         app.logger.error(f"KMIP connection test failed: {traceback.format_exc()}")
         return jsonify({
             "success": False,
-            "error": str(e),
+            "error": f"{str(e)}\n---\n{traceback.format_exc()}",
             "detail": traceback.format_exc(),
             "config": {"host": KMIP_HOST, "port": KMIP_PORT}
         }), 500
