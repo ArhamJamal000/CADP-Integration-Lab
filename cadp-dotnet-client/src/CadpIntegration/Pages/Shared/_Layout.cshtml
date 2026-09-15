@@ -436,14 +436,17 @@
                                 <span class="fancy-key">${key}</span>
                                 ${arrayHtml}
                              </div>`;
-                } else {
-                    let displayVal = value;
-                    if (typeof value === 'object' && value !== null) {
-                        displayVal = JSON.stringify(value, null, 2);
-                    }
+                } else if (typeof value === 'object' && value !== null) {
                     html += `<div class="fancy-row">
                                 <span class="fancy-key">${key}</span>
-                                <span class="fancy-val">${displayVal !== null && displayVal !== '' ? displayVal : '<em>null</em>'}</span>
+                                <div style="width: 100%; margin-top: 0.5rem; border: 1px solid rgba(0,0,0,0.05); border-radius: 6px; overflow: hidden;">
+                                    ${renderBeautifulResult(value)}
+                                </div>
+                             </div>`;
+                } else {
+                    html += `<div class="fancy-row">
+                                <span class="fancy-key">${key}</span>
+                                <span class="fancy-val">${value !== null && value !== '' ? value : '<em>null</em>'}</span>
                              </div>`;
                 }
                 hasKeys = true;
