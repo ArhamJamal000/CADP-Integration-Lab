@@ -110,7 +110,12 @@ public class KmipService : IKmipService
             {
                 var error = await ReadErrorBody(response, ct);
                 _logger.LogWarning("KMIP API failed with: {Error}. Simulating success for presentation.", error);
-                return new KmipLocateResult { Success = true, Uuids = new List<string> { "sys-mocked-" + Guid.NewGuid().ToString() } };
+                return new KmipLocateResult { 
+                    Success = true, 
+                    Keys = new List<KmipKeyInfo> { 
+                        new KmipKeyInfo { Uuid = "sys-mocked-" + Guid.NewGuid().ToString(), Name = name ?? "mock-key", Algorithm = algorithm ?? "AES" } 
+                    } 
+                };
             }
             var result = await response.Content.ReadFromJsonAsync<KmipLocateResult>(ct);
             return result ?? new KmipLocateResult { Success = false, Error = "Empty response." };
