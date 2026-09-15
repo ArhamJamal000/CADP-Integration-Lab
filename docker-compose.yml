@@ -12,9 +12,7 @@ services:
     volumes:
       - ./logs:/app/logs
       - ./test-vectors:/app/test-vectors
-      - "/home/arham-jamal/Desktop/Certificate (1).pem:/certs/Certificate (1).pem:ro"
-      - "/home/arham-jamal/Desktop/client.crt:/certs/client.crt:ro"
-      - "/home/arham-jamal/Desktop/client.key:/certs/client.key:ro"
+      - ./Cert:/certs:ro
 
   kmip-client:
     build:
@@ -23,9 +21,7 @@ services:
     networks:
       - cadp-net
     volumes:
-      - "/home/arham-jamal/Desktop/Certificate (1).pem:/certs/Certificate (1).pem:ro"
-      - "/home/arham-jamal/Desktop/client.crt:/certs/client.crt:ro"
-      - "/home/arham-jamal/Desktop/client.key:/certs/client.key:ro"
+      - ./Cert:/certs:ro
 
 networks:
   cadp-net:
