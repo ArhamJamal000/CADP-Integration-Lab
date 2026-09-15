@@ -28,13 +28,15 @@ def get_kmip_client():
         from kmip.pie.client import ProxyKmipClient
         from kmip.core.enums import KMIPVersion
 
+        import kmip.core.enums
         kwargs = {
             "hostname": KMIP_HOST,
             "port": KMIP_PORT,
-            "cert": "/certs/client.crt",
-            "key": "/certs/client.key",
-            "ca": "/certs/Certificate (1).pem",
-            "ssl_version": "PROTOCOL_TLSv1_2"
+            "cert": os.environ.get("TLS_CLIENT_CERT_PATH", "/certs/client.crt"),
+            "key": os.environ.get("TLS_CLIENT_KEY_PATH", "/certs/client.key"),
+            "ca": os.environ.get("TLS_CA_CERT_PATH", "/certs/Certificate (1).pem"),
+            "ssl_version": "PROTOCOL_TLSv1_2",
+            "kmip_version": kmip.core.enums.KMIPVersion.KMIP_1_2
         }
         
         # Only inject the Credential structure into the KMIP payload 
