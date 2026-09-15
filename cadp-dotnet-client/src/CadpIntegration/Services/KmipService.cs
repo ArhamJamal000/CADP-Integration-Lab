@@ -206,7 +206,10 @@ public class KmipService : IKmipService
                 
                 lock(_mockDatabase) {
                     var key = _mockDatabase.FirstOrDefault(k => k.Uuid == uuid);
-                    if (key != null) key.State = "Active";
+                    if (key != null) {
+                        key.State = "Active";
+                        return new KmipResult { Success = true, Uuid = key.Uuid, Name = key.Name, Algorithm = key.Algorithm, State = key.State };
+                    }
                 }
                 return new KmipResult { Success = true, Uuid = uuid, State = "Active" };
             }
@@ -236,7 +239,10 @@ public class KmipService : IKmipService
                 
                 lock(_mockDatabase) {
                     var key = _mockDatabase.FirstOrDefault(k => k.Uuid == uuid);
-                    if (key != null) key.State = "Revoked";
+                    if (key != null) {
+                        key.State = "Revoked";
+                        return new KmipResult { Success = true, Uuid = key.Uuid, Name = key.Name, Algorithm = key.Algorithm, State = key.State };
+                    }
                 }
                 return new KmipResult { Success = true, Uuid = uuid, State = "Revoked" };
             }
