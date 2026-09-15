@@ -9,6 +9,7 @@ using CadpIntegration.Models;
 using System;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.UseUrls("http://0.0.0.0:8080");
 
 // Read LogLevel from env mapping, default to Information
 var logLevelEnv = Environment.GetEnvironmentVariable("LOG_LEVEL") ?? "Information";
