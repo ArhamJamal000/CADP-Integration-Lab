@@ -36,7 +36,7 @@ def get_kmip_client():
             "key": os.environ.get("TLS_CLIENT_KEY_PATH", "/certs/client.key"),
             "ca": os.environ.get("TLS_CA_CERT_PATH", "/certs/Certificate (1).pem"),
             "ssl_version": "PROTOCOL_TLSv1_2",
-            "kmip_version": kmip.core.enums.KMIPVersion.KMIP_1_2
+            "kmip_version": kmip.core.enums.KMIPVersion.KMIP_1_4
         }
         
         # Only inject if strictly using username/pass auth instead of mTLS.
