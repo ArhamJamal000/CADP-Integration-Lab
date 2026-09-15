@@ -414,15 +414,38 @@
             for (const [key, value] of Object.entries(data)) {
                 if (key === 'success' || key === 'error') continue;
                 
-                let displayVal = value;
-                if (typeof value === 'object' && value !== null) {
-                    displayVal = JSON.stringify(value, null, 2);
+                if (Array.isArray(value)) {
+                    let arrayHtml = '<div style="display:flex; flex-direction:column; gap:0.5rem; width:100%; margin-top:0.5rem;">';
+                    value.forEach(item => {
+                        if (typeof item === 'object' && item !== null) {
+                            arrayHtml += `<div style="background:var(--bg-surface); padding:1rem; border-radius:6px; border:1px solid rgba(0,0,0,0.08); box-shadow:0 2px 4px rgba(0,0,0,0.02);">`;
+                            for (const [subKey, subVal] of Object.entries(item)) {
+                                let color = (subVal === true) ? '#27ae60' : (subVal === false ? '#e74c3c' : 'inherit');
+                                arrayHtml += `<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px dashed rgba(0,0,0,0.04); padding:0.4rem 0;">
+                                    <span style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase; font-weight:800;">${subKey}</span>
+                                    <span style="font-family:var(--font-mono); font-size:0.85rem; font-weight:600; color:${color}; text-align:right;">${subVal}</span>
+                                </div>`;
+                            }
+                            arrayHtml += `</div>`;
+                        } else {
+                            arrayHtml += `<div style="background:var(--bg-surface-alt); padding:0.5rem 1rem; border-radius:4px; font-family:var(--font-mono); border:1px solid rgba(0,0,0,0.04);">${item}</div>`;
+                        }
+                    });
+                    arrayHtml += '</div>';
+                    html += `<div class="fancy-row">
+                                <span class="fancy-key">${key}</span>
+                                ${arrayHtml}
+                             </div>`;
+                } else {
+                    let displayVal = value;
+                    if (typeof value === 'object' && value !== null) {
+                        displayVal = JSON.stringify(value, null, 2);
+                    }
+                    html += `<div class="fancy-row">
+                                <span class="fancy-key">${key}</span>
+                                <span class="fancy-val">${displayVal !== null && displayVal !== '' ? displayVal : '<em>null</em>'}</span>
+                             </div>`;
                 }
-                
-                html += `<div class="fancy-row">
-                            <span class="fancy-key">${key}</span>
-                            <span class="fancy-val">${displayVal !== null && displayVal !== '' ? displayVal : '<em>null</em>'}</span>
-                         </div>`;
                 hasKeys = true;
             }
             html += '</div>';
