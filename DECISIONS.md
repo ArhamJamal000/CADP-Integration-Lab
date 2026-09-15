@@ -53,3 +53,10 @@
 **Decision:** Selected a pure CSS Variable token layer embedded within `_Layout.cshtml` instead of introducing an external framework (e.g. Tailwind). The `.sidebar` was replaced with a flex-based `.top-nav` and custom CSS dropdowns to mirror CREDO's mega-menu structure.
 **Alternatives considered:** Integrating TailwindCSS or a frontend bundle step.
 **Tradeoffs accepted:** Inline raw CSS keeps the project dependency-light and respects the existing Razor Pages simplicity, but may become harder to maintain than a compiled CSS framework if the UI scales significantly.
+
+## [2026-09-15] Light Theme UI Upgrade
+
+**Context:** The user requested to remove the dark theme and implement a premium light theme utilizing UI enhancement skills.
+**Decision:** Updated the `:root` variables in `_Layout.cshtml` to an off-white `slate` (`#f8fafc`) base with pure white elevated surfaces, soft drop-shadows (`box-shadow`), and glassmorphism in the top navigation. Table headers and form inputs were inverted for light-mode visibility.
+**Alternatives considered:** Modifying the dark theme to make it less dark.
+**Tradeoffs accepted:** Deviates from the strict original credots.com dark aesthetic to fulfill the request for a customized brighter, enhanced premium aesthetic.

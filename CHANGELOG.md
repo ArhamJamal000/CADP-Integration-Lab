@@ -2,6 +2,7 @@
 - Complete visual UI restyle across Razor Pages to match credots.com dark theme and editorial layout parameters.
 - Replaced sidebar layout with modern sticky top-nav and mega-menu structure.
 - Refactored section headers across 9 feature pages to multi-line eyebrow configuration.
+- Upgraded globally to a customized premium light theme featuring glassmorphism, pure white elevated cards, and slate backgrounds.
 - See DECISIONS.md #UI Restyle & Design Token Implementation
 
 ## [2026-09-14]

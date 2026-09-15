@@ -7,23 +7,25 @@
         @@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;850;880&display=swap');
 
         :root {
-            --bg-primary: #050506;
-            --bg-surface: #101012;
-            --bg-surface-alt: #1b1b1e;
-            --text-primary: #ffffff;
-            --text-muted: #aaaab0;
-            --eyebrow-color: #6d7684;
+            --bg-primary: #f8fafc;
+            --bg-surface: #ffffff;
+            --bg-surface-alt: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-muted: #64748b;
+            --eyebrow-color: #e10119;
             --red: #e10119;
             --red-deep: #a00012;
-            --red-line: #e1011961;
-            --red-line-strong: #e10119b8;
+            --red-line: rgba(225, 1, 25, 0.15);
+            --red-line-strong: rgba(225, 1, 25, 0.5);
             --font-body: 'Inter', system-ui, sans-serif;
             --font-display: 'Inter', system-ui, sans-serif;
             --font-mono: monospace;
             --space-section: clamp(4rem, 6vh, 6rem) clamp(1.25rem, 4vw, 3rem);
             --max-content: 1320px;
-            --radius-card: 12px;
+            --radius-card: 16px;
             --radius-pill: 999px;
+            --shadow-subtle: 0 10px 30px rgba(0,0,0,0.02), 0 4px 6px rgba(0,0,0,0.01);
+            --shadow-hover: 0 15px 35px rgba(0,0,0,0.04), 0 5px 15px rgba(0,0,0,0.02);
         }
 
         body {
@@ -43,9 +45,10 @@
             position: sticky;
             top: 0;
             z-index: 40;
-            background: rgba(5, 5, 6, 0.82);
+            background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(18px);
-            border-bottom: 1px solid var(--red-line);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -57,7 +60,7 @@
             font-family: var(--font-display);
             font-weight: 880;
             font-size: 1.6rem;
-            color: #fff;
+            color: var(--text-primary);
             text-decoration: none;
             letter-spacing: -0.035em;
         }
@@ -97,15 +100,15 @@
             left: 50%;
             transform: translateX(-50%) translateY(10px);
             background: var(--bg-surface);
-            border: 1px solid var(--red-line);
+            border: 1px solid rgba(0,0,0,0.05);
             border-radius: var(--radius-card);
             padding: 2rem;
             display: none;
             gap: 3rem;
             min-width: 400px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
             opacity: 0;
-            transition: opacity 0.2s;
+            transition: opacity 0.2s, transform 0.2s;
         }
 
         .nav-item:hover .mega-menu {
@@ -137,7 +140,7 @@
             transition: color 0.2s;
         }
         .mega-col a:hover {
-            color: #fff;
+            color: var(--text-primary);
         }
 
         .content-main {
@@ -155,17 +158,24 @@
             padding: 2.5rem;
             margin-bottom: 2.5rem;
             border-radius: var(--radius-card);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: none;
+            border: 1px solid rgba(0, 0, 0, 0.03);
+            box-shadow: var(--shadow-subtle);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
         }
 
         .status {
             margin-bottom: 1.5rem;
             padding: 1.25rem;
             background: var(--bg-surface-alt);
-            border: 1px solid var(--red-line);
+            border: 1px solid rgba(0,0,0,0.05);
             border-radius: 8px;
             color: var(--text-primary);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
         }
 
         .btn {
@@ -181,12 +191,12 @@
             letter-spacing: 0.08em;
             font-size: 0.8rem;
             transition: all 0.2s ease;
-            box-shadow: 0 4px 15px rgba(225, 1, 25, 0.3);
+            box-shadow: 0 4px 15px rgba(225, 1, 25, 0.2);
         }
         .btn:hover {
             background: var(--red-deep);
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(225, 1, 25, 0.4);
+            box-shadow: 0 6px 20px rgba(225, 1, 25, 0.3);
         }
 
         /* Typography Extracted Styles */
@@ -212,7 +222,7 @@
 
         .eyebrow {
             display: block;
-            color: var(--text-muted);
+            color: var(--eyebrow-color);
             font-size: 0.75rem;
             letter-spacing: 0.14em;
             text-transform: uppercase;
@@ -228,21 +238,26 @@
         }
 
         input, select, textarea {
-            background: rgba(255, 255, 255, 0.05);
+            background: #ffffff;
             color: var(--text-primary);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(0, 0, 0, 0.15);
             border-radius: 6px;
             font-family: var(--font-body);
+            padding: 8px 12px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
         input:focus, select:focus, textarea:focus {
             outline: none;
             border-color: var(--red);
+            box-shadow: 0 0 0 2px rgba(225, 1, 25, 0.1);
         }
 
         /* Layout footer */
         .site-footer {
-            background: #000;
-            border-top: 1px solid var(--red-line);
+            background: #ffffff;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.01);
             padding: 5rem 2rem;
             display: flex;
             justify-content: center;
@@ -265,7 +280,7 @@
         }
 
         .footer-col-title {
-            color: var(--eyebrow-color);
+            color: var(--text-primary);
             font-size: 0.75rem;
             letter-spacing: 0.12em;
             text-transform: uppercase;
@@ -281,7 +296,7 @@
         }
         
         .footer-col a:hover {
-            color: #fff;
+            color: var(--red);
         }
     </style>
 </head>
