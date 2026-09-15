@@ -39,12 +39,12 @@ def get_kmip_client():
             "kmip_version": kmip.core.enums.KMIPVersion.KMIP_1_2
         }
         
-        # Only inject the Credential structure into the KMIP payload 
-        # if BOTH username and password are provided as non-empty strings.
-        # Otherwise, rely purely on mTLS certificate mapping.
-        if KMIP_USERNAME and KMIP_PASSWORD:
-            kwargs["username"] = KMIP_USERNAME
-            kwargs["password"] = KMIP_PASSWORD
+        # Only inject if strictly using username/pass auth instead of mTLS.
+        # Since we are using strictly mTLS from the Thales CTM CA, injecting 
+        # inline credentials often causes CTM to instantly kill the socket with EOFError.
+        # if KMIP_USERNAME and KMIP_PASSWORD:
+        #     kwargs["username"] = KMIP_USERNAME
+        #     kwargs["password"] = KMIP_PASSWORD
             
         client = ProxyKmipClient(**kwargs)
 
