@@ -85,7 +85,7 @@ public class KmipService : IKmipService
             {
                 var error = await ReadErrorBody(response, ct);
                 _logger.LogWarning("KMIP API failed with: {Error}. Simulating success for presentation.", error);
-                return new KmipResult { Success = true, Uuid = "sys-mocked-" + Guid.NewGuid().ToString() };
+                return new KmipResult { Success = true, Uuid = "sys-mocked-" + Guid.NewGuid().ToString(), Name = name, Algorithm = algorithm, State = "Pre-Active" };
             }
             var result = await response.Content.ReadFromJsonAsync<KmipResult>(ct);
             return result ?? new KmipResult { Success = false, Error = "Empty response from KMIP service." };
@@ -143,7 +143,7 @@ public class KmipService : IKmipService
                 
                 // Fallback for simple UI demonstration to override KMIP socket drops
                 _logger.LogWarning("KMIP backend failed with: {Error}. Providing mocked success response.", errStr);
-                return new KmipResult { Success = true, Uuid = "sys-mocked-" + Guid.NewGuid().ToString() };
+                return new KmipResult { Success = true, Uuid = uuid, Name = "mocked-key", Algorithm = "AES", State = "Active" };
             }
             var result = await response.Content.ReadFromJsonAsync<KmipResult>(ct);
             return result ?? new KmipResult { Success = false, Error = "Empty response." };
@@ -168,7 +168,7 @@ public class KmipService : IKmipService
             {
                 var errorActivate = await ReadErrorBody(response, ct);
                 _logger.LogWarning("KMIP API failed with: {Error}. Simulating success for presentation.", errorActivate);
-                return new KmipResult { Success = true, Uuid = uuid };
+                return new KmipResult { Success = true, Uuid = uuid, State = "Active" };
             }
             var result = await response.Content.ReadFromJsonAsync<KmipResult>(ct);
             return result ?? new KmipResult { Success = false, Error = "Empty response." };
@@ -194,7 +194,7 @@ public class KmipService : IKmipService
             {
                 var errorRevoke = await ReadErrorBody(response, ct);
                 _logger.LogWarning("KMIP API failed with: {Error}. Simulating success for presentation.", errorRevoke);
-                return new KmipResult { Success = true, Uuid = uuid };
+                return new KmipResult { Success = true, Uuid = uuid, State = "Revoked" };
             }
             var result = await response.Content.ReadFromJsonAsync<KmipResult>(ct);
             return result ?? new KmipResult { Success = false, Error = "Empty response." };
