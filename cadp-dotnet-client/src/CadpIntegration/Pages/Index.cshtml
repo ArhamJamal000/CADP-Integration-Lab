@@ -4,44 +4,44 @@
     ViewData["Title"] = "Dashboard";
 }
 
-<div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 2rem; align-items: start;">
+<div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 1.5rem; align-items: start;">
     <!-- Left Column: Overview and Tools -->
-    <div style="display: flex; flex-direction: column; gap: 2rem;">
-        <div class="card" style="margin-bottom: 0;">
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <div class="card" style="margin-bottom: 0; padding: 2rem;">
             <span class="eyebrow">00 OVERVIEW</span>
-            <h2>Dashboard</h2>
-            <p class="supporting-text" style="margin-bottom: 0;">Welcome to the CADP Integration Lab.</p>
+            <h2 style="margin-bottom: 0.5rem; font-size: 2.2rem;">Dashboard</h2>
+            <p class="supporting-text" style="font-size: 0.95rem; margin-bottom: 0;">Welcome to the CADP Integration Lab.</p>
         </div>
         
-        <div class="card" style="margin-bottom: 0;">
-            <h3>Quick Actions</h3>
-            <p class="supporting-text" style="font-size: 0.95rem; margin-bottom: 1.5rem;">Jump straight into encryption operations or cryptographic key management.</p>
+        <div class="card" style="margin-bottom: 0; padding: 2rem;">
+            <h3 style="margin-bottom: 0.5rem;">Quick Actions</h3>
+            <p class="supporting-text" style="font-size: 0.9rem; margin-bottom: 1.5rem; line-height: 1.4;">Jump straight into encryption operations or cryptographic key management.</p>
             <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                <a href="/StringEncryption" class="btn" style="background:#0f172a; color:#fff; box-shadow:0 4px 10px rgba(0,0,0,0.1);">String Encryption</a>
-                <a href="/FileEncryption" class="btn" style="background:#0f172a; color:#fff; box-shadow:0 4px 10px rgba(0,0,0,0.1);">File Encryption</a>
-                <a href="/KmipKeyManagement" class="btn" style="background:#e2e8f0; color:#0f172a; border:1px solid rgba(0,0,0,0.1); box-shadow:none;">Key Management</a>
+                <a href="/StringEncryption" class="btn" style="background:#0f172a; color:#fff; box-shadow:0 4px 10px rgba(0,0,0,0.1); padding: 10px 18px; font-size: 0.75rem;">String Encryption</a>
+                <a href="/FileEncryption" class="btn" style="background:#0f172a; color:#fff; box-shadow:0 4px 10px rgba(0,0,0,0.1); padding: 10px 18px; font-size: 0.75rem;">File Encryption</a>
+                <a href="/KmipKeyManagement" class="btn" style="background:#e2e8f0; color:#0f172a; border:1px solid rgba(0,0,0,0.1); box-shadow:none; padding: 10px 18px; font-size: 0.75rem;">Key Management</a>
             </div>
         </div>
     </div>
 
     <!-- Right Column: Status and Tests -->
-    <div style="display: flex; flex-direction: column; gap: 2rem;">
-        <div class="card" style="margin-bottom: 0;">
-            <h3>Platform Health</h3>
-            <ul id="health-data" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.75rem;">
-                <li style="padding: 1rem; background: var(--bg-surface-alt); border-radius: 6px; font-weight:600;">Loading health data...</li>
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <div class="card" style="margin-bottom: 0; padding: 2rem;">
+            <h3 style="margin-bottom: 1rem;">Platform Health</h3>
+            <ul id="health-data" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem;">
+                <li style="padding: 0.75rem 1rem; background: var(--bg-surface-alt); border-radius: 8px; font-weight:600; border:1px solid rgba(0,0,0,0.08); font-size: 0.9rem;">Loading health data...</li>
             </ul>
         </div>
         
-        <div class="card" style="margin-bottom: 0;">
-            <h3>Diagnostics</h3>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 1.5rem;">
-                <button class="btn" style="font-size: 0.75rem; padding: 12px 20px;" onclick="testCadp()">Test CADP</button>
-                <button class="btn" style="font-size: 0.75rem; padding: 12px 20px;" onclick="testKmip()">Test KMIP</button>
-                <button class="btn" style="font-size: 0.75rem; padding: 12px 20px;" onclick="testNae()">Test NAE</button>
-                <button class="btn" style="font-size: 0.75rem; padding: 12px 20px; background: #16a34a;" onclick="runSmoke()">Smoke Test</button>
+        <div class="card" style="margin-bottom: 0; padding: 2rem;">
+            <h3 style="margin-bottom: 1rem;">Diagnostics</h3>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem;">
+                <button class="btn" style="font-size: 0.7rem; padding: 10px 14px;" onclick="testCadp()">Test CADP</button>
+                <button class="btn" style="font-size: 0.7rem; padding: 10px 14px;" onclick="testKmip()">Test KMIP</button>
+                <button class="btn" style="font-size: 0.7rem; padding: 10px 14px;" onclick="testNae()">Test NAE</button>
+                <button class="btn" style="font-size: 0.7rem; padding: 10px 14px; background: #16a34a;" onclick="runSmoke()">Smoke Test</button>
             </div>
-            <div id="actionStatus" style="padding: 12px; border-radius: 6px; margin-bottom: 12px; font-weight: bold; color: var(--text-muted); font-size: 0.85rem; background: var(--bg-surface-alt); border: 1px solid rgba(0,0,0,0.05);">Status: Ready.</div>
+            <div id="actionStatus" style="padding: 10px 12px; border-radius: 6px; margin-bottom: 8px; font-weight: bold; color: var(--text-muted); font-size: 0.8rem; background: var(--bg-surface-alt); border: 1px solid rgba(0,0,0,0.05);">Status: Ready.</div>
             <div id="actionResult" style="padding: 8px 0; display: none;"></div>
         </div>
     </div>
@@ -52,14 +52,14 @@ fetch('/health')
     .then(res => res.json())
     .then(data => {
         const renderBadge = (status) => status === 'UP' || status === 'CONFIGURED' 
-            ? `<span style="background:#dcfce7; color:#166534; padding:3px 10px; border-radius:12px; font-size:0.7rem; font-weight:700;">${status}</span>`
-            : `<span style="background:#fee2e2; color:#991b1b; padding:3px 10px; border-radius:12px; font-size:0.7rem; font-weight:700;">${status}</span>`;
+            ? `<span style="background:#dcfce7; color:#166534; padding:2px 8px; border-radius:12px; font-size:0.65rem; font-weight:700;">${status}</span>`
+            : `<span style="background:#fee2e2; color:#991b1b; padding:2px 8px; border-radius:12px; font-size:0.65rem; font-weight:700;">${status}</span>`;
             
         document.getElementById('health-data').innerHTML = `
-            <li style="padding:0.75rem 1rem; background:var(--bg-surface); border-radius:8px; display:flex; justify-content:space-between; align-items:center; border:1px solid rgba(0,0,0,0.08); box-shadow:0 1px 3px rgba(0,0,0,0.02)"><strong>Application</strong> ${renderBadge(data.application)}</li>
-            <li style="padding:0.75rem 1rem; background:var(--bg-surface); border-radius:8px; display:flex; justify-content:space-between; align-items:center; border:1px solid rgba(0,0,0,0.08); box-shadow:0 1px 3px rgba(0,0,0,0.02)"><strong>KMIP Link</strong> ${renderBadge(data.kmip)}</li>
-            <li style="padding:0.75rem 1rem; background:var(--bg-surface); border-radius:8px; display:flex; justify-content:space-between; align-items:center; border:1px solid rgba(0,0,0,0.08); box-shadow:0 1px 3px rgba(0,0,0,0.02)"><strong>NAE-XML Auth</strong> ${renderBadge(data.naeXml)}</li>
-            <li style="padding:0.75rem 1rem; background:var(--bg-surface); border-radius:8px; display:flex; justify-content:space-between; align-items:center; border:1px solid rgba(0,0,0,0.08); box-shadow:0 1px 3px rgba(0,0,0,0.02)"><strong>CADP Tunnel</strong> ${renderBadge(data.cadp)}</li>
+            <li style="padding:0.6rem 1rem; background:var(--bg-surface); border-radius:6px; display:flex; justify-content:space-between; align-items:center; border:1px solid rgba(0,0,0,0.06); box-shadow:0 1px 2px rgba(0,0,0,0.02); font-size: 0.85rem;"><strong>Application</strong> ${renderBadge(data.application)}</li>
+            <li style="padding:0.6rem 1rem; background:var(--bg-surface); border-radius:6px; display:flex; justify-content:space-between; align-items:center; border:1px solid rgba(0,0,0,0.06); box-shadow:0 1px 2px rgba(0,0,0,0.02); font-size: 0.85rem;"><strong>KMIP Link</strong> ${renderBadge(data.kmip)}</li>
+            <li style="padding:0.6rem 1rem; background:var(--bg-surface); border-radius:6px; display:flex; justify-content:space-between; align-items:center; border:1px solid rgba(0,0,0,0.06); box-shadow:0 1px 2px rgba(0,0,0,0.02); font-size: 0.85rem;"><strong>NAE-XML Auth</strong> ${renderBadge(data.naeXml)}</li>
+            <li style="padding:0.6rem 1rem; background:var(--bg-surface); border-radius:6px; display:flex; justify-content:space-between; align-items:center; border:1px solid rgba(0,0,0,0.06); box-shadow:0 1px 2px rgba(0,0,0,0.02); font-size: 0.85rem;"><strong>CADP Tunnel</strong> ${renderBadge(data.cadp)}</li>
         `;
     });
 
