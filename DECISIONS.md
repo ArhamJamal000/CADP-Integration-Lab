@@ -46,3 +46,10 @@
 **Decision:** Wired all four buttons to call their respective API endpoints (`/api/kmip/locate`, `/api/encryption/string/encrypt`, `/api/nae/connect`, `/api/tests/run-positive`) with status display. Added explicit `cadp-net` bridge network and `depends_on` to `docker-compose.yml`.
 **Alternatives considered:** Replacing buttons with navigation links to individual pages — rejected to preserve quick-test dashboard UX.
 **Tradeoffs accepted:** Dashboard duplicates some functionality from dedicated pages, but provides faster one-click testing. See FLOW.md :: Dashboard Quick-Test Flow.
+
+## [2026-09-15] UI Restyle & Design Token Implementation
+
+**Context:** The application required a visual restyle to match the credots.com design system (deep graphite theme, primary red/gradient call-to-actions, top mega-menu layout, editorial typography) without altering any existing business logic, routing, or functionality.
+**Decision:** Selected a pure CSS Variable token layer embedded within `_Layout.cshtml` instead of introducing an external framework (e.g. Tailwind). The `.sidebar` was replaced with a flex-based `.top-nav` and custom CSS dropdowns to mirror CREDO's mega-menu structure.
+**Alternatives considered:** Integrating TailwindCSS or a frontend bundle step.
+**Tradeoffs accepted:** Inline raw CSS keeps the project dependency-light and respects the existing Razor Pages simplicity, but may become harder to maintain than a compiled CSS framework if the UI scales significantly.

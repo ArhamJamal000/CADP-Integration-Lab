@@ -2,6 +2,7 @@
 @{ ViewData["Title"] = "KMIP Key Management"; }
 
 <div class="card">
+    <span class="eyebrow">03 INTEGRATION</span>
     <h2>KMIP Key Management</h2>
     <h3>Create Key</h3>
     <div style="display: flex; gap: 16px; margin-bottom: 16px;">
@@ -19,7 +20,7 @@
         <button class="btn" onclick="locateKeys()">Search</button>
     </div>
     <table style="width:100%; border-collapse:collapse;" id="keysTable">
-        <thead><tr style="background:#2c3e50; color:white;">
+        <thead><tr style="background:var(--bg-surface-alt); color:var(--text-primary); border-bottom:1px solid var(--red-line);">
             <th style="padding:8px; text-align:left;">UUID</th>
             <th style="padding:8px; text-align:left;">Name</th>
             <th style="padding:8px; text-align:left;">State</th>

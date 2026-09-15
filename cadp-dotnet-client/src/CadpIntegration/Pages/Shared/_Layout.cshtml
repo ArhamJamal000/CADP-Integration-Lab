@@ -4,33 +4,351 @@
     <meta charset="utf-8" />
     <title>@ViewData["Title"] - CADP Lab</title>
     <style>
-        body { font-family: sans-serif; display: flex; margin: 0; padding: 0; min-height: 100vh; }
-        .sidebar { width: 250px; background: #2c3e50; color: white; padding: 20px; }
-        .sidebar h3 { margin-top: 0; }
-        .sidebar a { display: block; color: #ecf0f1; text-decoration: none; margin-bottom: 10px; padding: 8px; border-radius: 4px; }
-        .sidebar a:hover { background: #34495e; }
-        .content { flex: 1; padding: 20px; background: #f9f9f9; color: #333; }
-        .card { background: white; padding: 20px; margin-bottom: 20px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .status { margin-bottom: 20px; padding: 10px; background: #e8f4f8; }
-        .btn { padding: 8px 16px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; }
-        .btn:hover { background: #2980b9; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;850;880&display=swap');
+
+        :root {
+            --bg-primary: #050506;
+            --bg-surface: #101012;
+            --bg-surface-alt: #1b1b1e;
+            --text-primary: #ffffff;
+            --text-muted: #aaaab0;
+            --eyebrow-color: #6d7684;
+            --red: #e10119;
+            --red-deep: #a00012;
+            --red-line: #e1011961;
+            --red-line-strong: #e10119b8;
+            --font-body: 'Inter', system-ui, sans-serif;
+            --font-display: 'Inter', system-ui, sans-serif;
+            --font-mono: monospace;
+            --space-section: clamp(4rem, 6vh, 6rem) clamp(1.25rem, 4vw, 3rem);
+            --max-content: 1320px;
+            --radius-card: 12px;
+            --radius-pill: 999px;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .top-nav {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            background: rgba(5, 5, 6, 0.82);
+            backdrop-filter: blur(18px);
+            border-bottom: 1px solid var(--red-line);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            min-height: 86px;
+        }
+
+        .brand {
+            font-family: var(--font-display);
+            font-weight: 880;
+            font-size: 1.6rem;
+            color: #fff;
+            text-decoration: none;
+            letter-spacing: -0.035em;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            height: 100%;
+            align-items: center;
+        }
+
+        .nav-item {
+            position: relative;
+            display: flex;
+            align-items: center;
+            height: 86px;
+        }
+
+        .nav-item > a {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: color 0.2s;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .nav-item:hover > a {
+            color: var(--red);
+        }
+
+        /* Mega Menu styling pattern */
+        .mega-menu {
+            position: absolute;
+            top: 86px;
+            left: 50%;
+            transform: translateX(-50%) translateY(10px);
+            background: var(--bg-surface);
+            border: 1px solid var(--red-line);
+            border-radius: var(--radius-card);
+            padding: 2rem;
+            display: none;
+            gap: 3rem;
+            min-width: 400px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .nav-item:hover .mega-menu {
+            display: flex;
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .mega-col {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            min-width: 140px;
+        }
+
+        .mega-col-title {
+            color: var(--eyebrow-color);
+            font-size: 0.7rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+            font-weight: 800;
+        }
+
+        .mega-col a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+        .mega-col a:hover {
+            color: #fff;
+        }
+
+        .content-main {
+            flex: 1;
+            width: 100%;
+            max-width: var(--max-content);
+            margin: 0 auto;
+            padding: var(--space-section);
+            box-sizing: border-box;
+        }
+
+        /* Restyled Layout Content Elements */
+        .card {
+            background: var(--bg-surface);
+            padding: 2.5rem;
+            margin-bottom: 2.5rem;
+            border-radius: var(--radius-card);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: none;
+        }
+
+        .status {
+            margin-bottom: 1.5rem;
+            padding: 1.25rem;
+            background: var(--bg-surface-alt);
+            border: 1px solid var(--red-line);
+            border-radius: 8px;
+            color: var(--text-primary);
+        }
+
+        .btn {
+            padding: 14px 28px;
+            background: var(--red);
+            color: white;
+            border: none;
+            border-radius: var(--radius-pill);
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(225, 1, 25, 0.3);
+        }
+        .btn:hover {
+            background: var(--red-deep);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(225, 1, 25, 0.4);
+        }
+
+        /* Typography Extracted Styles */
+        h1, h2, h3 {
+            font-family: var(--font-display);
+            margin-top: 0;
+            color: var(--text-primary);
+        }
+
+        h2 {
+            font-size: clamp(2rem, 3.5vw, 3.4rem);
+            font-weight: 850;
+            line-height: 0.96;
+            letter-spacing: -0.035em;
+            margin-bottom: 1.5rem;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .eyebrow {
+            display: block;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .supporting-text {
+            color: var(--text-muted);
+            font-size: clamp(1rem, 1.08vw, 1.13rem);
+            margin-bottom: 2rem;
+            max-width: 800px;
+        }
+
+        input, select, textarea {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            font-family: var(--font-body);
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--red);
+        }
+
+        /* Layout footer */
+        .site-footer {
+            background: #000;
+            border-top: 1px solid var(--red-line);
+            padding: 5rem 2rem;
+            display: flex;
+            justify-content: center;
+            margin-top: auto;
+        }
+        
+        .footer-inner {
+            display: flex;
+            flex-wrap: wrap;
+            width: 100%;
+            max-width: var(--max-content);
+            gap: 4rem;
+        }
+
+        .footer-col {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            min-width: 150px;
+        }
+
+        .footer-col-title {
+            color: var(--eyebrow-color);
+            font-size: 0.75rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin: 0 0 0.5rem 0;
+            font-weight: 800;
+        }
+
+        .footer-col a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+        
+        .footer-col a:hover {
+            color: #fff;
+        }
     </style>
 </head>
 <body>
-    <div class="sidebar">
-        <h3>CADP Lab</h3>
-        <a href="/">Dashboard</a>
-        <a href="/StringEncryption">String Encryption</a>
-        <a href="/FileEncryption">File Encryption</a>
-        <a href="/KmipKeyManagement">KMIP Key Management</a>
-        <a href="/NaeXml">NAE-XML</a>
-        <a href="/TestRunner">Test Runner</a>
-        <a href="/Logs">Logs</a>
-        <a href="/Configuration">Configuration</a>
-        <a href="/Documentation">Documentation</a>
-    </div>
-    <div class="content">
+    <nav class="top-nav">
+        <a href="/" class="brand">CADP LAB</a>
+        <div class="nav-links">
+            <div class="nav-item">
+                <a href="/">Dashboard</a>
+            </div>
+            <div class="nav-item">
+                <a href="#">Encryption</a>
+                <div class="mega-menu">
+                    <div class="mega-col">
+                        <div class="mega-col-title">Operations</div>
+                        <a href="/StringEncryption">String Encryption</a>
+                        <a href="/FileEncryption">File Encryption</a>
+                    </div>
+                </div>
+            </div>
+            <div class="nav-item">
+                <a href="#">Configuration</a>
+                <div class="mega-menu">
+                    <div class="mega-col">
+                        <div class="mega-col-title">Network</div>
+                        <a href="/KmipKeyManagement">KMIP Keys</a>
+                        <a href="/NaeXml">NAE-XML Auth</a>
+                        <a href="/Configuration">Settings / Env</a>
+                    </div>
+                </div>
+            </div>
+            <div class="nav-item">
+                <a href="#">Resources</a>
+                <div class="mega-menu">
+                    <div class="mega-col">
+                        <div class="mega-col-title">Dev Tools</div>
+                        <a href="/TestRunner">Test Runner</a>
+                        <a href="/Logs">Server Logs</a>
+                        <a href="/Documentation">Documentation</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div class="content-main">
         @RenderBody()
     </div>
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-col">
+                <div class="footer-col-title">ENCRYPTION</div>
+                <a href="/StringEncryption">String Encryption</a>
+                <a href="/FileEncryption">File Encryption</a>
+            </div>
+            <div class="footer-col">
+                <div class="footer-col-title">INTEGRATION</div>
+                <a href="/KmipKeyManagement">KMIP Integration</a>
+                <a href="/NaeXml">NAE-XML Connections</a>
+            </div>
+            <div class="footer-col">
+                <div class="footer-col-title">SUPPORT</div>
+                <a href="/Configuration">Platform Config</a>
+                <a href="/TestRunner">Diagnostics</a>
+                <a href="/Logs">Telemetry</a>
+                <a href="/Documentation">Docs</a>
+            </div>
+        </div>
+    </footer>
 </body>
 </html>

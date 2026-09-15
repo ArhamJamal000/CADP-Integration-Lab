@@ -2,8 +2,9 @@
 @{ ViewData["Title"] = "Test Runner"; }
 
 <div class="card">
+    <span class="eyebrow">05 DIAGNOSTICS</span>
     <h2>Test Runner</h2>
-    <p>Executes automated tests against the CADP API dependencies mapped in this lab environment.</p>
+    <p class="supporting-text">Executes automated tests against the CADP API dependencies mapped in this lab environment.</p>
     
     <div style="display: flex; gap: 8px; margin-bottom: 20px;">
         <button class="btn" style="background:#2ecc71;" onclick="runTests('positive')">Run Positive Tests</button>
@@ -13,7 +14,7 @@
     <h3>Test Results: <span id="testStatusGrp" style="padding:4px 8px; font-size:0.6em; border-radius:4px; margin-left:10px; display:none;"></span></h3>
     <table style="width:100%; border-collapse:collapse; margin-top:10px;" id="resultsTable">
         <thead>
-            <tr style="background:#2c3e50; color:white;">
+            <tr style="background:var(--bg-surface-alt); color:var(--text-primary); border-bottom:1px solid var(--red-line);">
                 <th style="padding:8px; text-align:left; width:120px;">Test ID</th>
                 <th style="padding:8px; text-align:left; width:150px;">Component</th>
                 <th style="padding:8px; text-align:left;">Description</th>

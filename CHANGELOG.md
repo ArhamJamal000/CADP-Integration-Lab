@@ -1,3 +1,9 @@
+## [2026-09-15]
+- Complete visual UI restyle across Razor Pages to match credots.com dark theme and editorial layout parameters.
+- Replaced sidebar layout with modern sticky top-nav and mega-menu structure.
+- Refactored section headers across 9 feature pages to multi-line eyebrow configuration.
+- See DECISIONS.md #UI Restyle & Design Token Implementation
+
 ## [2026-09-14]
 - Fixed dashboard action buttons (Test KMIP, Test CADP, Test NAE-XML, Run Smoke Test) — they had no onclick handlers and did nothing when clicked (see DECISIONS.md #Dashboard Button Handlers & Docker Networking Fix).
 - Added explicit `cadp-net` Docker bridge network and `depends_on` to `docker-compose.yml` for reliable inter-container DNS (see FLOW.md :: Dashboard Quick-Test Flow).
