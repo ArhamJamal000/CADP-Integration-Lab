@@ -11,3 +11,4 @@
 - Implemented Phase 5 File Encryption with streaming signatures and multipart upload endpoints.
 - Implemented Phase 6 KMIP Key Lifecycle with PyKMIP Flask wrapper and .NET proxy (see DECISIONS.md #KMIP Service Architecture).
 - Implemented Phase 7 NAE-XML TLS Client with SslStream and certificate validation (see DECISIONS.md #NAE-XML TLS Client).
+- Added file download API endpoint and frontend download button to File Encryption mock dashboard to satisfy presentation requirements.
