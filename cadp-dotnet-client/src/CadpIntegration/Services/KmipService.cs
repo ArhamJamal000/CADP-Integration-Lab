@@ -113,7 +113,7 @@ public class KmipService : IKmipService
                 return new KmipLocateResult { 
                     Success = true, 
                     Keys = new List<KmipKeyInfo> { 
-                        new KmipKeyInfo { Uuid = "sys-mocked-" + Guid.NewGuid().ToString(), Name = name ?? "mock-key", Algorithm = algorithm ?? "AES" } 
+                        new KmipKeyInfo { Uuid = "sys-mocked-" + Guid.NewGuid().ToString(), Name = name ?? "mock-key", Algorithm = algorithm ?? "AES", State = state ?? "Pre-Active" } 
                     } 
                 };
             }
