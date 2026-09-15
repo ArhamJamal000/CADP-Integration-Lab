@@ -67,3 +67,10 @@
 **Decision:** Implemented a global JS utility `renderBeautifulResult` within `_Layout.cshtml` to dynamically parse and render JSON objects into styled HTML key-value rows (`.fancy-result`), removing `JSON.stringify` logic across the Razor pages.
 **Alternatives considered:** Using a third-party JSON viewing library.
 **Tradeoffs accepted:** The custom JS function is lightweight but might lack advanced rendering features (like collapsible nodes) found in heavy libraries.
+
+## [2026-09-15] In-Memory Mock Database for KMIP
+
+**Context:** The API fallback was returning hardcoded generic strings (`mock-key`) when the KMIP connection failed, causing confusion as newly created keys seemingly vanished on search.
+**Decision:** Integrated a thread-safe static `List<KmipKeyInfo>` within `.NET KmipService` to persist mocked keys in-memory across the session if the true connection drops.
+**Alternatives considered:** Relying on the user understanding it's a hardcoded bypass, or using Redis.
+**Tradeoffs accepted:** The keys are exclusively stored in the web server's RAM and will wipe upon container restart, however this perfectly fulfills the requirement for an uninterrupted demonstration without external dependencies.
