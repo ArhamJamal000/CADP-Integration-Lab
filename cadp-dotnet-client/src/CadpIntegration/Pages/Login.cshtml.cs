@@ -22,7 +22,7 @@ namespace CadpIntegration.Pages
 
         public async Task<IActionResult> OnPostAsync()
         {
-            if (Username == "admin" && Password == "admin")
+            if (Username == "admin" && Password == "Credo@123#")
             {
                 var claims = new List<Claim> { new Claim(ClaimTypes.Name, Username) };
                 var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
