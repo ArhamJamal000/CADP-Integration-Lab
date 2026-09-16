@@ -57,21 +57,28 @@ def get_kmip_client():
 def extract_attribute(attrs_list, attr_name):
     """Safely extract a named attribute from a PyKMIP attributes list/tuple."""
     try:
-        # get_attributes returns (uid, [Attribute, ...]) in PyKMIP 0.10
         if isinstance(attrs_list, tuple) and len(attrs_list) >= 2:
             attr_objects = attrs_list[1]
         elif isinstance(attrs_list, list):
             attr_objects = attrs_list
         else:
-            # Try direct attribute access as fallback
-            val = getattr(attrs_list, attr_name, None)
-            return str(val) if val is not None else ""
+            return ""
 
         for attr in attr_objects:
-            name = getattr(attr, 'attribute_name', None)
-            if name and name.value == attr_name:
+            name_enum = getattr(attr, 'attribute_name', None)
+            if name_enum and name_enum.value == attr_name:
                 val = getattr(attr, 'attribute_value', None)
-                return str(val.value) if val is not None else ""
+                if val is None:
+                    return ""
+                
+                # Handling for Complex Attributes (like Name)
+                if attr_name == "Name":
+                    name_str = getattr(val, 'name_value', None)
+                    return str(name_str.value) if name_str else str(val)
+                
+                # Handling for Enums or Primtives (State, Cryptographic Algorithm)
+                return str(val.value) if hasattr(val, 'value') else str(val)
+                
         return ""
     except Exception as e:
         app.logger.warning(f"Could not extract attribute '{attr_name}': {e}")
