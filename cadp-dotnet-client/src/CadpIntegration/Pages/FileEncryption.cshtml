@@ -12,7 +12,9 @@
         <div style="display: flex; gap: 16px;">
             <div style="flex:1;">
                 <label><strong>Key Identifier:</strong></label><br/>
-                <input type="text" id="fileKeyId" placeholder="e.g. test-key-1" style="width:100%; padding:8px; box-sizing:border-box;" />
+                <select id="fileKeyId" style="width:100%; padding:8px; box-sizing:border-box;">
+                    <option value="">Loading keys from CTM...</option>
+                </select>
             </div>
             <div style="flex:1;">
                 <label><strong>Algorithm:</strong></label><br/>
@@ -77,4 +79,28 @@ async function doFileOp(action) {
         resultEl.textContent = 'Error: ' + e.message;
     }
 }
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const keySelect = document.getElementById('fileKeyId');
+    try {
+        const res = await fetch('/api/kmip/locate', { method: 'POST', headers: {'Content-Type':'application/json'}, body: '{}' });
+        const data = await res.json();
+        if (data.success && data.keys) {
+            keySelect.innerHTML = '';
+            data.keys.forEach(k => {
+                const opt = document.createElement('option');
+                opt.value = k.uuid;
+                opt.textContent = `${k.name || 'Unnamed Key'} (${k.uuid.substring(0,8)}...)`;
+                keySelect.appendChild(opt);
+            });
+            if (data.keys.length === 0) {
+                keySelect.innerHTML = '<option value="">No keys found in CTM</option>';
+            }
+        } else {
+            keySelect.innerHTML = '<option value="">Error loading keys</option>';
+        }
+    } catch(e) {
+        keySelect.innerHTML = '<option value="">Error loading keys</option>';
+    }
+});
 </script>

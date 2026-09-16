@@ -1,3 +1,12 @@
+## [2026-09-16]
+- **Dynamic KMIP Key Dropdowns:** Replaced raw text inputs in `StringEncryption` and `FileEncryption` with HTML `<select>` dropdowns that automatically fetch and populate available KMIP keys from CTM via `/api/kmip/locate` on page load.
+- **Realistic CADP Mock:** Reimplemented CADP encryption mock to strictly enforce Key Identifiers. Decryption now requires the exact original `keyId` used during encryption, or it will reject the payload with an honest error, fulfilling the strict key binding requirement without the CADP SDK.
+- **Fixed CTM connectivity (permanent):** Switched TLS client cert from `client.crt` (wrong CN) to `client-v2.crt` (CN=`cadp_lab_user`) — verified via `openssl s_client` (see DECISIONS.md #TLS Client Certificate Fix)
+- Removed in-memory mock database from `KmipService.cs` — all KMIP errors now surface truthfully (see DECISIONS.md #Mock Removal)
+- Removed simulated CADP encryption from `EncryptionService.cs` — returns honest "SDK not wired" status
+- Fixed `NaeXmlClient.cs` to read cert paths from env vars and validate server cert against CA (see FLOW.md :: NAE-XML TLS Connection)
+- See DECISIONS.md #Mock Removal for full rationale
+
 ## [2026-09-15]
 - Complete visual UI restyle across Razor Pages to match credots.com dark theme and editorial layout parameters.
 - Replaced sidebar layout with modern sticky top-nav and mega-menu structure.

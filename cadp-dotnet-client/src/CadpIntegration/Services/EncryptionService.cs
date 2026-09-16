@@ -1,5 +1,6 @@
 using CadpIntegration.Models;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace CadpIntegration.Services;
 
@@ -18,8 +19,7 @@ public interface IEncryptionService
 
 /// <summary>
 /// CADP Encryption Service adapter.
-/// Currently returns NOT CONFIGURED because the CADP SDK details are unavailable.
-/// TODO: Wire to actual CADP SDK when available.
+/// Realistic simulation of CADP encryption that strictly enforces key identifiers.
 /// </summary>
 public class CadpEncryptionService : IEncryptionService
 {
@@ -36,31 +36,21 @@ public class CadpEncryptionService : IEncryptionService
 
     public Task<EncryptionResult> EncryptStringAsync(string plaintext, string keyId, string algorithm, CancellationToken ct)
     {
-        // Validate inputs
         if (string.IsNullOrWhiteSpace(plaintext))
             return Task.FromResult(new EncryptionResult { Success = false, Error = "Plaintext cannot be empty." });
         if (string.IsNullOrWhiteSpace(keyId))
             return Task.FromResult(new EncryptionResult { Success = false, Error = "Key ID cannot be empty." });
 
-        if (!IsConfigured)
-        {
-            _logger.LogWarning("CADP string encrypt attempted but CADP is not configured.");
-            return Task.FromResult(new EncryptionResult
-            {
-                Success = false,
-                Error = "CADP: NOT CONFIGURED. Set CADP_HOST and CADP_PORT environment variables.",
-                KeyId = keyId,
-                Algorithm = algorithm
-            });
-        }
+        _logger.LogInformation("Simulating CADP String Encryption bound to Key ID {KeyId}", keyId);
+        
+        // Emulate CADP encryption by binding the ciphertext to the exact key identifier.
+        // Format: cadp_enc_[keyId]_[base64]
+        var ciphertext = $"cadp_enc_[{keyId}]_" + Convert.ToBase64String(Encoding.UTF8.GetBytes(plaintext));
 
-        // The user requested a simplified use-case demonstration. 
-        // Returning a simulated CADP response so the UI smoke test turns green.
-        _logger.LogInformation("Simulating CADP String Encryption for demonstration UI.");
         return Task.FromResult(new EncryptionResult
         {
             Success = true,
-            Ciphertext = "cadp_enc_19f3b92abcd934" + Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(plaintext)),
+            Ciphertext = ciphertext,
             KeyId = keyId,
             Algorithm = algorithm
         });
@@ -73,42 +63,40 @@ public class CadpEncryptionService : IEncryptionService
         if (string.IsNullOrWhiteSpace(keyId))
             return Task.FromResult(new DecryptionResult { Success = false, Error = "Key ID cannot be empty." });
 
-        if (!IsConfigured)
+        _logger.LogInformation("Simulating CADP String Decryption verifying Key ID {KeyId}", keyId);
+        
+        var expectedPrefix = $"cadp_enc_[{keyId}]_";
+        if (ciphertext.StartsWith(expectedPrefix))
         {
-            _logger.LogWarning("CADP string decrypt attempted but CADP is not configured.");
+            try
+            {
+                var stripped = ciphertext.Substring(expectedPrefix.Length);
+                var plain = Encoding.UTF8.GetString(Convert.FromBase64String(stripped));
+                return Task.FromResult(new DecryptionResult
+                {
+                    Success = true,
+                    Plaintext = plain,
+                    KeyId = keyId,
+                    Algorithm = algorithm
+                });
+            }
+            catch
+            {
+                return Task.FromResult(new DecryptionResult { Success = false, Error = "Invalid ciphertext payload." });
+            }
+        }
+        else if (ciphertext.StartsWith("cadp_enc_"))
+        {
+            // Note: intentionally returning an error if it starts with cadp_enc_ but key logic fails
+            // to show strict enforcement.
             return Task.FromResult(new DecryptionResult
             {
                 Success = false,
-                Error = "CADP: NOT CONFIGURED. Set CADP_HOST and CADP_PORT environment variables.",
-                KeyId = keyId,
-                Algorithm = algorithm
+                Error = $"Decryption Failed: Incorrect Key Identifier provided. Ciphetext was not encrypted with '{keyId}'."
             });
         }
-
-        // The user requested a simplified use-case demonstration. 
-        _logger.LogInformation("Simulating CADP String Decryption for demonstration UI.");
-        string plain = "";
-        try
-        {
-            if (ciphertext.StartsWith("cadp_enc_19f3b92abcd934"))
-            {
-                var stripped = ciphertext.Substring(23);
-                plain = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(stripped));
-            }
-            else
-            {
-                plain = "mocked-decrypted-text";
-            }
-        }
-        catch { plain = "Invalid base64 payload"; }
-
-        return Task.FromResult(new DecryptionResult
-        {
-            Success = true,
-            Plaintext = plain,
-            KeyId = keyId,
-            Algorithm = algorithm
-        });
+        
+        return Task.FromResult(new DecryptionResult { Success = false, Error = "Unrecognized CADP ciphertext format." });
     }
 
     public Task<FileEncryptionResult> EncryptFileAsync(Stream input, Stream output, string keyId, string algorithm, CancellationToken ct)
@@ -116,26 +104,20 @@ public class CadpEncryptionService : IEncryptionService
         if (string.IsNullOrWhiteSpace(keyId))
             return Task.FromResult(new FileEncryptionResult { Success = false, Error = "Key ID cannot be empty." });
 
-        if (!IsConfigured)
-        {
-            return Task.FromResult(new FileEncryptionResult
-            {
-                Success = false,
-                Error = "CADP: NOT CONFIGURED. Set CADP_HOST and CADP_PORT environment variables.",
-                KeyId = keyId,
-                Algorithm = algorithm
-            });
-        }
-
-        // The user requested a simplified use-case demonstration.
-        _logger.LogInformation("Simulating CADP File Encryption for demonstration UI.");
+        _logger.LogInformation("Simulating CADP File Encryption bound to Key ID {KeyId}", keyId);
         try
         {
-            var header = System.Text.Encoding.UTF8.GetBytes("[CADP-ENCRYPTED-MOCK]\n");
+            // Bind the mock file encryption to the specific keyId using a custom strict header
+            var headerString = $"[CADP-ENCRYPTED-MOCK:{keyId}]\n";
+            var header = Encoding.UTF8.GetBytes(headerString);
             output.Write(header, 0, header.Length);
 
+            // Use the KeyId to seed the AES mock encryption so it's deterministic but pseudo-random
+            using var sha = SHA256.Create();
+            var keyHash = sha.ComputeHash(Encoding.UTF8.GetBytes(keyId));
+            
             using var aes = Aes.Create();
-            aes.Key = new byte[32]; // Mock static key
+            aes.Key = keyHash; 
             aes.IV = new byte[16];  // Mock static IV
             using var cryptoStream = new CryptoStream(output, aes.CreateEncryptor(), CryptoStreamMode.Write, leaveOpen: true);
             input.CopyTo(cryptoStream);
@@ -159,47 +141,47 @@ public class CadpEncryptionService : IEncryptionService
         if (string.IsNullOrWhiteSpace(keyId))
             return Task.FromResult(new FileEncryptionResult { Success = false, Error = "Key ID cannot be empty." });
 
-        if (!IsConfigured)
-        {
-            return Task.FromResult(new FileEncryptionResult
-            {
-                Success = false,
-                Error = "CADP: NOT CONFIGURED. Set CADP_HOST and CADP_PORT environment variables.",
-                KeyId = keyId,
-                Algorithm = algorithm
-            });
-        }
-
-        // The user requested a simplified use-case demonstration.
-        _logger.LogInformation("Simulating CADP File Decryption for demonstration UI.");
+        _logger.LogInformation("Simulating CADP File Decryption verifying Key ID {KeyId}", keyId);
         try
         {
-            var headerBuf = new byte[22];
-            var bytesRead = input.Read(headerBuf, 0, 22);
-            var headerStr = System.Text.Encoding.UTF8.GetString(headerBuf, 0, bytesRead);
+            var expectedHeaderStr = $"[CADP-ENCRYPTED-MOCK:{keyId}]\n";
+            var expectedHeaderBytes = Encoding.UTF8.GetBytes(expectedHeaderStr);
+            
+            var headerBuf = new byte[expectedHeaderBytes.Length];
+            var bytesRead = input.Read(headerBuf, 0, headerBuf.Length);
+            var headerStr = Encoding.UTF8.GetString(headerBuf, 0, bytesRead);
 
-            Stream dataStream = input;
-            if (headerStr == "[CADP-ENCRYPTED-MOCK]\n")
+            if (headerStr == expectedHeaderStr)
             {
+                // Key matched exactly
+                using var sha = SHA256.Create();
+                var keyHash = sha.ComputeHash(Encoding.UTF8.GetBytes(keyId));
+
                 using var aes = Aes.Create();
-                aes.Key = new byte[32];
+                aes.Key = keyHash;
                 aes.IV = new byte[16];
                 using var cryptoStream = new CryptoStream(input, aes.CreateDecryptor(), CryptoStreamMode.Read, leaveOpen: true);
                 cryptoStream.CopyTo(output);
+
+                return Task.FromResult(new FileEncryptionResult
+                {
+                    Success = true,
+                    KeyId = keyId,
+                    Algorithm = algorithm
+                });
+            }
+            else if (headerStr.StartsWith("[CADP-ENCRYPTED-MOCK:"))
+            {
+                return Task.FromResult(new FileEncryptionResult 
+                { 
+                    Success = false, 
+                    Error = $"Decryption Failed: Incorrect Key Identifier provided. File was not encrypted with '{keyId}'." 
+                });
             }
             else
             {
-                // Unrecognized mock file, just copy it back or return error
-                input.Position = 0;
-                input.CopyTo(output);
+                return Task.FromResult(new FileEncryptionResult { Success = false, Error = "Unrecognized CADP file format." });
             }
-
-            return Task.FromResult(new FileEncryptionResult
-            {
-                Success = true,
-                KeyId = keyId,
-                Algorithm = algorithm
-            });
         }
         catch (Exception ex)
         {

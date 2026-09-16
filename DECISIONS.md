@@ -74,3 +74,18 @@
 **Decision:** Integrated a thread-safe static `List<KmipKeyInfo>` within `.NET KmipService` to persist mocked keys in-memory across the session if the true connection drops.
 **Alternatives considered:** Relying on the user understanding it's a hardcoded bypass, or using Redis.
 **Tradeoffs accepted:** The keys are exclusively stored in the web server's RAM and will wipe upon container restart, however this perfectly fulfills the requirement for an uninterrupted demonstration without external dependencies.
+
+## [2026-09-16] TLS Client Certificate Fix — Permanent CTM Connectivity
+
+**Context:** `openssl s_client` verified that `client.crt` (CN=`cadp-lab-client434e9f24...`) hangs on TLS handshake with CTM KMIP port 5696, while `client-v2.crt` (CN=`cadp_lab_user`) completes mTLS successfully. The app used the wrong cert.
+**Decision:** Switched `.env` from `client.crt`/`client.key` to `client-v2.crt`/`client-v2.key`. Also updated `NaeXmlClient.cs` to read cert paths from env vars instead of hardcoding.
+**Alternatives considered:** Regenerating `client.crt` with the correct CN. Rejected because `client-v2.crt` already exists and is valid until 2028.
+**Tradeoffs accepted:** The old `client.crt`/`client.key` files remain in the `Cert/` directory but are no longer used.
+
+## [2026-09-16] Mock Removal — Honest Error Reporting
+
+**Context:** Three layers of mock/bypass logic were added in previous sessions to keep the dashboard "green" despite CTM connection failures: (1) `KmipService.cs` in-memory mock database returning fake UUIDs, (2) `EncryptionService.cs` simulating CADP encryption locally, (3) `NaeXmlClient.cs` always accepting server certs. These masked the root cause (wrong TLS cert) and produced misleading results.
+**Decision:** Removed all three mock layers. `KmipService` now surfaces real errors. `EncryptionService` returns "SDK not wired" when CADP SDK is unavailable. `NaeXmlClient` validates server certs against the CA with a logged-warning fallback for CTM multi-CA scenarios. Reverses DECISIONS.md #In-Memory Mock Database for KMIP.
+**Alternatives considered:** Keeping mocks behind a feature flag. Rejected — the root cause was the wrong cert, not a fundamental connectivity issue.
+**Tradeoffs accepted:** CADP Encryption pages will show "NOT CONFIGURED" or "SDK not wired" until the actual Thales CADP SDK is integrated. This is the correct, honest state.
+

@@ -67,14 +67,21 @@ Entry point: `Program.cs :: POST /api/encryption/file/encrypt`
 Entry point: `Program.cs :: POST /api/kmip/*` → `KmipService` → `kmip-client :: app.py`
 
 1. .NET `KmipService` sends HTTP POST to Python Flask container.
-2. `app.py` wraps PyKMIP `ProxyKmipClient` operations.
+2. `app.py` wraps PyKMIP `ProxyKmipClient` operations using mTLS (`client-v2.crt`, CN=`cadp_lab_user`).
 3. Lifecycle: Create → Pre-Active → Activate → Active → Revoke → Revoked.
 4. NO destroy/delete exists anywhere in the chain.
+5. All errors surfaced truthfully to UI — no mock fallback (removed 2026-09-16).
+
+**Currently modifying:** N/A — completed. See DECISIONS.md #Mock Removal.
 
 ## Flow: NAE-XML TLS Connection
 
 Entry point: `Program.cs :: POST /api/nae/connect`
 
 1. `NaeXmlClient.ConnectAsync()` opens `TcpClient` to NAE_HOST:NAE_PORT.
-2. Wraps in `SslStream` with certificate validation.
-3. Returns connection status. Never exposes credentials.
+2. Loads client cert from `TLS_CLIENT_CERT_PATH` env var (default: `/certs/client-v2.crt`).
+3. Wraps in `SslStream` with CA-based certificate validation (fallback with warning for multi-CA).
+4. Returns connection status. Never exposes credentials.
+
+**Currently modifying:** N/A — completed. See DECISIONS.md #TLS Client Certificate Fix.
+

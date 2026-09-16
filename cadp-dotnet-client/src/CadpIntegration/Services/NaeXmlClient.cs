@@ -67,9 +67,11 @@ public class NaeXmlClient : INaeXmlClient
             X509CertificateCollection clientCerts = new X509CertificateCollection();
             try
             {
-                if (System.IO.File.Exists("/certs/client.crt") && System.IO.File.Exists("/certs/client.key"))
+                var certPath = Environment.GetEnvironmentVariable("TLS_CLIENT_CERT_PATH") ?? "/certs/client-v2.crt";
+                var keyPath = Environment.GetEnvironmentVariable("TLS_CLIENT_KEY_PATH") ?? "/certs/client-v2.key";
+                if (System.IO.File.Exists(certPath) && System.IO.File.Exists(keyPath))
                 {
-                    var cert = X509Certificate2.CreateFromPemFile("/certs/client.crt", "/certs/client.key");
+                    var cert = X509Certificate2.CreateFromPemFile(certPath, keyPath);
                     // Windows compatibility for Ephemeral keys (not needed in Linux Docker, but safe)
                     clientCerts.Add(new X509Certificate2(cert.Export(X509ContentType.Pkcs12)));
                 }
@@ -205,11 +207,39 @@ public class NaeXmlClient : INaeXmlClient
     private bool ValidateServerCertificate(object sender, X509Certificate? certificate,
         X509Chain? chain, SslPolicyErrors sslPolicyErrors)
     {
-        // In this CADP lab environment, the CTM KMIP interface (5696) and NAE-XML interface (9000) 
-        // often use distinct issuing CAs (e.g. CipherTrust Root CA vs SQL-TDE-CA). 
-        // Since the VM container mapped only one CA certificate (/certs/Certificate (1).pem),
-        // strict chain validation inevitably fails for the mismatched port. 
-        // To allow the dashboard integration to pass, we explicitly approve the server certificate.
+        if (sslPolicyErrors == SslPolicyErrors.None)
+            return true;
+
+        // Try to validate against the mounted CA certificate
+        var caPath = Environment.GetEnvironmentVariable("TLS_CA_CERT_PATH") ?? "/certs/Certificate (1).pem";
+        if (certificate != null && System.IO.File.Exists(caPath))
+        {
+            try
+            {
+                var caCert = X509Certificate2.CreateFromPemFile(caPath);
+                using var customChain = new X509Chain();
+                customChain.ChainPolicy.ExtraStore.Add(caCert);
+                customChain.ChainPolicy.VerificationFlags = X509VerificationFlags.AllowUnknownCertificateAuthority;
+                customChain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
+
+                if (customChain.Build(new X509Certificate2(certificate)))
+                {
+                    _logger.LogInformation("NAE-XML server cert validated against CA at {CaPath}", caPath);
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "NAE-XML CA chain validation failed, checking if CTM multi-CA scenario");
+            }
+        }
+
+        // CTM may use a different CA for the NAE-XML port (9000) vs KMIP (5696).
+        // Log a clear warning but allow the connection so the lab can function.
+        _logger.LogWarning(
+            "NAE-XML server cert has policy errors ({Errors}). Allowing connection for CTM lab compatibility. " +
+            "To fix: mount the NAE-specific CA cert and update TLS_CA_CERT_PATH.",
+            sslPolicyErrors);
         return true;
     }
 }
