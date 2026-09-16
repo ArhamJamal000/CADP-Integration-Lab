@@ -23,6 +23,17 @@ services:
     volumes:
       - ./Cert:/certs:ro
 
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - cadp-integration
+    networks:
+      - cadp-net
+
 networks:
   cadp-net:
     driver: bridge
