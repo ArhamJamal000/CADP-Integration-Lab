@@ -43,9 +43,10 @@ public class CadpEncryptionService : IEncryptionService
 
         _logger.LogInformation("Simulating CADP String Encryption bound to Key ID {KeyId}", keyId);
         
-        // Emulate CADP encryption by binding the ciphertext to the exact key identifier.
-        // Format: cadp_enc_[keyId]_[base64]
-        var ciphertext = $"cadp_enc_[{keyId}]_" + Convert.ToBase64String(Encoding.UTF8.GetBytes(plaintext));
+        // Emulate CADP encryption by embedding the Key ID INSIDE the base64 payload 
+        // format before base64: [KEY_ID]:[PLAINTEXT]
+        var combinedPayload = $"{keyId}:{plaintext}";
+        var ciphertext = "cadp_enc_" + Convert.ToBase64String(Encoding.UTF8.GetBytes(combinedPayload));
 
         return Task.FromResult(new EncryptionResult
         {
@@ -65,17 +66,33 @@ public class CadpEncryptionService : IEncryptionService
 
         _logger.LogInformation("Simulating CADP String Decryption verifying Key ID {KeyId}", keyId);
         
-        var expectedPrefix = $"cadp_enc_[{keyId}]_";
-        if (ciphertext.StartsWith(expectedPrefix))
+        if (ciphertext.StartsWith("cadp_enc_"))
         {
             try
             {
-                var stripped = ciphertext.Substring(expectedPrefix.Length);
-                var plain = Encoding.UTF8.GetString(Convert.FromBase64String(stripped));
+                var stripped = ciphertext.Substring("cadp_enc_".Length);
+                var decoded = Encoding.UTF8.GetString(Convert.FromBase64String(stripped));
+                
+                // Extract key and plain
+                var firstColon = decoded.IndexOf(':');
+                if (firstColon == -1) throw new Exception("Invalid mock payload format.");
+
+                var embeddedKeyId = decoded.Substring(0, firstColon);
+                var plaintext = decoded.Substring(firstColon + 1);
+
+                if (embeddedKeyId != keyId)
+                {
+                    return Task.FromResult(new DecryptionResult
+                    {
+                        Success = false,
+                        Error = $"Decryption Failed: Incorrect Key Identifier provided. Ciphetext was not encrypted with '{keyId}'."
+                    });
+                }
+
                 return Task.FromResult(new DecryptionResult
                 {
                     Success = true,
-                    Plaintext = plain,
+                    Plaintext = plaintext,
                     KeyId = keyId,
                     Algorithm = algorithm
                 });
@@ -84,16 +101,6 @@ public class CadpEncryptionService : IEncryptionService
             {
                 return Task.FromResult(new DecryptionResult { Success = false, Error = "Invalid ciphertext payload." });
             }
-        }
-        else if (ciphertext.StartsWith("cadp_enc_"))
-        {
-            // Note: intentionally returning an error if it starts with cadp_enc_ but key logic fails
-            // to show strict enforcement.
-            return Task.FromResult(new DecryptionResult
-            {
-                Success = false,
-                Error = $"Decryption Failed: Incorrect Key Identifier provided. Ciphetext was not encrypted with '{keyId}'."
-            });
         }
         
         return Task.FromResult(new DecryptionResult { Success = false, Error = "Unrecognized CADP ciphertext format." });

@@ -206,7 +206,8 @@ def locate_keys():
             keys = []
             for uid in uids:
                 try:
-                    attrs = client.get_attributes(uid=uid)
+                    # By default PyKMIP doesn't fetch Name on get_attributes() unless explicitly requested
+                    attrs = client.get_attributes(uid=uid, attribute_names=["Name", "State", "Cryptographic Algorithm"])
                     keys.append({
                         "uuid": uid,
                         "name": extract_attribute(attrs, "Name"),
