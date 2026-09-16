@@ -54,8 +54,10 @@ def get_kmip_client():
         app.logger.error(f"Failed to create KMIP client: {e}")
         return None
 
+import re
+
 def extract_attribute(attrs_list, attr_name):
-    """Safely extract a named attribute from a PyKMIP attributes list/tuple."""
+    """Safely extract a named attribute from a PyKMIP attributes list/tuple using string reflection."""
     try:
         if isinstance(attrs_list, tuple) and len(attrs_list) >= 2:
             attr_objects = attrs_list[1]
@@ -65,20 +67,35 @@ def extract_attribute(attrs_list, attr_name):
             return ""
 
         for attr in attr_objects:
-            name_enum = getattr(attr, 'attribute_name', None)
-            if name_enum and name_enum.value == attr_name:
+            attr_str = str(attr)
+            # Find the attribute name inside the string e.g. AttributeName.NAME
+            if attr_name.upper() in attr_str.upper():
+                # Attempt structural extraction first
                 val = getattr(attr, 'attribute_value', None)
-                if val is None:
-                    return ""
+                if val:
+                    # Generic heuristic: look for a '.value' field recursively
+                    if hasattr(val, 'name_value'):
+                        return str(getattr(getattr(val, 'name_value', None), 'value', val))
+                    if hasattr(val, 'value'):
+                        return str(val.value)
+                    
+                # Regex fallback on the raw string format from PyKMIP
+                # e.g.: Name(name_value=TextString(value='CADPtest'), name_type=NameType.UNINTERPRETED_TEXT_STRING)
+                # or: State(value=State.PRE_ACTIVE)
                 
-                # Handling for Complex Attributes (like Name)
+                # Match Name: search for value='...' or value="..."
                 if attr_name == "Name":
-                    name_str = getattr(val, 'name_value', None)
-                    return str(name_str.value) if name_str else str(val)
-                
-                # Handling for Enums or Primtives (State, Cryptographic Algorithm)
-                return str(val.value) if hasattr(val, 'value') else str(val)
-                
+                    m = re.search(r"value=['\"](.*?)['\"]", attr_str)
+                    if m: return m.group(1)
+                elif attr_name == "State":
+                    m = re.search(r"State\.([A-Z_]+)", attr_str)
+                    if m: return m.group(1).title().replace('_', '-')
+                elif attr_name == "Cryptographic Algorithm":
+                    m = re.search(r"CryptographicAlgorithm\.([A-Z0-9_]+)", attr_str)
+                    if m: return m.group(1).replace('_', '-')
+                    
+                return str(val) if val else "Unknown"
+
         return ""
     except Exception as e:
         app.logger.warning(f"Could not extract attribute '{attr_name}': {e}")
